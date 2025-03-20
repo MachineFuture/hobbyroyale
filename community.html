@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hobby Royale - Community</title>
+  <style>
+    /* FONT AND ROOT VARIABLES */
+    @font-face {
+      font-family: 'NintendoFont';
+      src: url('https://machinefuture.github.io/fonts/nintendo_NTLGDB_001.ttf') format('truetype');
+      font-display: swap;
+    }
+    :root {
+      --sidebar-dark: #4f4684;
+      --sidebar-light: #e2e0f0;
+      --bg-dark: #5d5c64;
+      --bg-light: #f3f2f5;
+      --txt-dark: #fff;
+      --txt-light: #000;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'NintendoFont', sans-serif;
+    }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--txt-dark);
+      overflow-x: hidden;
+      transition: background-color 0.3s, color 0.3s;
+      padding-bottom: 50px; /* extra space so bottom bar won't cover content */
+    }
+    body.light-mode {
+      background-color: var(--bg-light);
+      color: var(--txt-light);
+    }
+    
+    /* LIGHT MODE ADJUSTMENTS FOR VISIBILITY */
+    body.light-mode .toggle-btn div { background: #000 !important; }
+    body.light-mode .custom-dropdown {
+      background: rgba(0,0,0,0.1);
+      border: 1px solid rgba(0,0,0,0.4);
+      color: #000;
+    }
+    body.light-mode .custom-dropdown-list { background: rgba(255,255,255,0.95); color: #000; border: 1px solid rgba(0,0,0,0.3); }
+    body.light-mode .custom-dropdown-item:hover { background: rgba(0,0,0,0.1); }
+    body.light-mode .leaderboard-block { background: rgba(0,0,0,0.1); }
+    body.light-mode .leaderboard-block:hover { background: rgba(0,0,0,0.2); }
+    body.light-mode .forum-refresh { background: rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.3); color: #000; }
+    body.light-mode .forum-post { background: rgba(0,0,0,0.1); }
+    body.light-mode .forum-post:hover { background: rgba(0,0,0,0.2); }
+    body.light-mode .popular-block { background: rgba(0,0,0,0.1); }
+    body.light-mode .popular-block:hover { background: rgba(0,0,0,0.2); }
+    body.light-mode .event-card { background: rgba(0,0,0,0.1); }
+    body.light-mode .event-card:hover { background: rgba(0,0,0,0.2); }
+    
+    /* DIM OVERLAY – covers entire page (including headbar & bottombar) */
+    .dimscreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background-color: rgba(0,0,0,0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s;
+      z-index: 2000;
+    }
+    .dimscreen.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    /* TOGGLE BUTTON – always on top */
+    .toggle-btn {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      width: 30px;
+      height: 25px;
+      cursor: pointer;
+      z-index: 2100;
+    }
+    .toggle-btn div {
+      height: 3px;
+      background: #fff;
+      margin: 4px;
+      transition: 0.4s;
+      transform-origin: center;
+    }
+    .toggle-btn.active .bar1 {
+      transform: rotate(-45deg) translate(-5px, 5px);
+    }
+    .toggle-btn.active .bar2 {
+      opacity: 0;
+    }
+    .toggle-btn.active .bar3 {
+      transform: rotate(45deg) translate(-5px, -5px);
+    }
+    /* SIDEBAR */
+    .sidebar {
+      position: fixed;
+      top: 0; left: -250px;
+      width: 250px; height: 100vh;
+      background-color: var(--sidebar-dark);
+      padding: 1rem;
+      transition: left 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+      z-index: 2050;
+    }
+    body.light-mode .sidebar {
+      background-color: var(--sidebar-light);
+    }
+    .sidebar.active {
+      left: 0;
+    }
+    .sidebar ul {
+      list-style: none;
+      margin-top: 2rem;
+      padding: 0;
+    }
+    .sidebar ul li {
+      margin-bottom: 0.6rem;
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    .sidebar.active ul li {
+      animation: appear 0.4s forwards;
+    }
+    .sidebar.active ul li:nth-child(1) { animation-delay: 0.1s; }
+    .sidebar.active ul li:nth-child(2) { animation-delay: 0.15s; }
+    .sidebar.active ul li:nth-child(3) { animation-delay: 0.2s; }
+    .sidebar.active ul li:nth-child(4) { animation-delay: 0.25s; }
+    .sidebar.active ul li:nth-child(5) { animation-delay: 0.3s; }
+    .sidebar.active ul li:nth-child(6) { animation-delay: 0.35s; }
+    .sidebar.active ul li:nth-child(7) { animation-delay: 0.4s; }
+    @keyframes appear {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .sidebar ul li a {
+      text-decoration: none;
+      font-size: 1.2rem;
+      color: inherit;
+      transition: background-color 0.3s;
+      padding: 0.2rem 0.3rem;
+      display: block;
+    }
+    .sidebar ul li a:hover {
+      background-color: rgba(255,255,255,0.3);
+    }
+    .sidebar ul li a.current {
+      background-color: rgba(255,255,255,0.5);
+      color: #000;
+      border-radius: 5px;
+    }
+    body.light-mode .sidebar ul li a.current {
+      background-color: rgba(0,0,0,0.3);
+      color: #fff;
+    }
+    /* THEME TOGGLE & SYSTEM TOGGLE */
+    .theme-toggle {
+      position: absolute;
+      bottom: 4.5rem;
+      left: 1rem;
+      cursor: pointer;
+      border: 1px solid #fff;
+      padding: 0.3rem 0.5rem;
+      border-radius: 5px;
+      z-index: 2100;
+    }
+    .system-toggle {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      font-size: 0.9rem;
+      border: 1px dashed #fff;
+      padding: 0.3rem;
+      margin-top: 1rem;
+      transition: 0.3s;
+      cursor: pointer;
+      z-index: 2100;
+    }
+    .system-toggle.active {
+      border: 1px solid #fff;
+      background: rgba(255,255,255,0.2);
+    }
+    /* HEADBAR & BOTTOM BAR */
+    .content-headbar {
+      position: fixed;
+      top: -60px;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background-color: var(--sidebar-dark);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: top 0.4s;
+      z-index: 1900;
+    }
+    body.light-mode .content-headbar {
+      background-color: var(--sidebar-light);
+      color: #000;
+    }
+    .content-headbar.show {
+      top: 0;
+    }
+    .bottom-bar {
+      position: fixed;
+      bottom: -70px;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      background-color: var(--sidebar-dark);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: bottom 0.4s;
+      z-index: 1900;
+    }
+    body.light-mode .bottom-bar {
+      background-color: var(--sidebar-light);
+      color: #000;
+    }
+    .bottom-bar.show {
+      bottom: 0;
+    }
+    /* HERO SECTION – EXACTLY LIKE PATCHNOTES */
+    .hero-section {
+      position: relative; 
+      width: 100%; 
+      height: 100vh;
+      background: url('assets/images/community-hero.jpg') center center/cover no-repeat fixed;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+    }
+    .hero-section h1 {
+      font-size: 5rem; 
+      color: #fff; 
+      text-transform: uppercase;
+      background: rgba(0,0,0,0.5);
+      padding: 1rem 2rem; 
+      border-radius: 10px;
+    }
+    /* CALL TO ACTION */
+    .cta-title {
+      text-align: center;
+      font-size: 2rem;
+      margin: 2rem 0;
+      animation: ctaFadeIn 1s ease forwards;
+      opacity: 0;
+    }
+    @keyframes ctaFadeIn {
+      to { opacity: 1; }
+    }
+    /* SECTION LAYOUT */
+    section {
+      width: 90%;
+      max-width: 1200px;
+      margin: 2rem auto;
+    }
+    .section-title {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    .section-subtitle {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+      opacity: 0.8;
+    }
+    /* LEADERBOARD SECTION */
+    .leaderboard-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    @media (min-width: 768px) {
+      .leaderboard-block {
+        width: calc(50% - 1rem);
+      }
+    }
+    @media (max-width: 767px) {
+      .leaderboard-block {
+        width: 100%;
+      }
+    }
+    .leaderboard-block {
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+      padding: 1rem;
+      transition: 0.4s;
+      position: relative;
+    }
+    body.light-mode .leaderboard-block {
+      background: rgba(0,0,0,0.1);
+    }
+    .leaderboard-block:hover {
+      background: rgba(0,0,0,0.3);
+    }
+    body.light-mode .leaderboard-block:hover {
+      background: rgba(0,0,0,0.2);
+    }
+    .leaderboard-tab-title {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .leaderboard-select {
+      display: none !important;
+    }
+    .custom-dropdown {
+      position: relative;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 5px;
+      padding: 0.2rem 0.5rem;
+      cursor: pointer;
+      user-select: none;
+      animation: bounceIn 0.6s ease;
+    }
+    @keyframes bounceIn {
+      0% { transform: scale(0.6); }
+      60% { transform: scale(1.1); }
+      80% { transform: scale(0.95); }
+      100% { transform: scale(1); }
+    }
+    .custom-dropdown:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .custom-dropdown-list {
+      position: absolute;
+      top: 110%;
+      left: 0;
+      background: rgba(0,0,0,0.8);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 5px;
+      display: none;
+      flex-direction: column;
+      z-index: 2200;
+      animation: ddFadeIn 0.3s ease;
+    }
+    @keyframes ddFadeIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .custom-dropdown-list.show {
+      display: flex;
+    }
+    .custom-dropdown-item {
+      padding: 0.4rem 0.6rem;
+      transition: background 0.3s;
+    }
+    .custom-dropdown-item:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    .custom-dropdown-item.greyed {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+    }
+    .leaderboard-table th,
+    .leaderboard-table td {
+      padding: 0.4rem;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .leaderboard-table th {
+      cursor: pointer;
+      position: relative;
+    }
+    .sort-arrow {
+      margin-left: 0.3rem;
+      font-size: 1rem;
+      opacity: 0.7;
+    }
+    .sort-animate {
+      animation: rotateArrow 0.4s;
+    }
+    @keyframes rotateArrow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes staircaseUp {
+      0% { transform: translateY(20px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    /* FORUM POSTS SECTION */
+    .forum-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .forum-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      opacity: 0;
+      animation: fadeInForum 0.6s forwards;
+    }
+    @keyframes fadeInForum {
+      to { opacity: 1; }
+    }
+    .forum-post {
+      flex: 1 1 calc(50% - 1rem);
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      transition: 0.4s;
+      min-height: 200px;
+      position: relative;
+    }
+    body.light-mode .forum-post {
+      background: rgba(0,0,0,0.1);
+    }
+    .forum-post:hover {
+      background: rgba(0,0,0,0.3);
+    }
+    body.light-mode .forum-post:hover {
+      background: rgba(0,0,0,0.2);
+    }
+    @media (min-width: 768px) {
+      .post-content {
+        display: flex;
+        flex-direction: row;
+      }
+      .post-info {
+        flex: 1;
+        margin-right: 1rem;
+      }
+      .post-image-container {
+        width: 200px;
+        height: auto;
+        flex-shrink: 0;
+      }
+      .post-image {
+        width: 100%;
+        max-height: 180px;
+        object-fit: cover;
+        border-radius: 5px;
+      }
+    }
+    @media (max-width: 767px) {
+      .post-content {
+        display: flex;
+        flex-direction: column;
+      }
+      .post-image-container {
+        width: 100%;
+        margin-top: 0.5rem;
+      }
+      .post-image {
+        width: 100%;
+        max-height: 200px;
+        object-fit: cover;
+        border-radius: 5px;
+      }
+    }
+    .forum-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .forum-pfp {
+      width: 50px;
+      height: 50px;
+      background: red;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+      flex-shrink: 0;
+    }
+    .forum-username {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 0.2rem;
+    }
+    .forum-date {
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+    .post-title {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+    }
+    .post-text {
+      font-size: 0.9rem;
+      line-height: 1.4;
+      margin-bottom: 0.5rem;
+      word-wrap: break-word;
+    }
+    .post-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: auto;
+    }
+    .post-yeah-count {
+      margin-right: 0.5rem;
+      font-size: 0.9rem;
+    }
+    .yeah-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      cursor: pointer;
+      padding: 0.3rem 0.6rem;
+      border-radius: 5px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      transition: 0.3s;
+    }
+    .yeah-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    .yeah-icon {
+      margin-right: 0.3rem;
+    }
+    .forum-refresh {
+      display: inline-block;
+      margin: 1rem auto;
+      padding: 0.5rem 1rem;
+      border: 1px solid #fff;
+      border-radius: 5px;
+      background: rgba(255,255,255,0.2);
+      cursor: pointer;
+      text-align: center;
+      transition: 0.3s;
+    }
+    .forum-refresh:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    /* MOST POPULAR SECTION */
+    .popular-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    @media (min-width: 768px) {
+      .popular-block {
+        width: calc(33.333% - 1rem);
+      }
+    }
+    @media (max-width: 767px) {
+      .popular-block {
+        width: 100%;
+      }
+    }
+    .popular-block {
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+      padding: 1rem;
+      transition: 0.4s;
+      position: relative;
+    }
+    body.light-mode .popular-block {
+      background: rgba(0,0,0,0.1);
+    }
+    .popular-block:hover {
+      background: rgba(0,0,0,0.3);
+    }
+    body.light-mode .popular-block:hover {
+      background: rgba(0,0,0,0.2);
+    }
+    .popular-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+    }
+    .popular-table th,
+    .popular-table td {
+      padding: 0.4rem;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .popular-table th {
+      cursor: pointer;
+      position: relative;
+    }
+    /* EVENTS SECTION */
+    .events-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      position: relative;
+    }
+    .event-card {
+      flex: 1 1 calc(33.333% - 1rem);
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+      padding: 1rem;
+      transition: transform 0.5s cubic-bezier(0.68,-0.55,0.27,1.55);
+      position: relative;
+      min-height: 200px;
+      cursor: pointer;
+    }
+    body.light-mode .event-card {
+      background: rgba(0,0,0,0.1);
+    }
+    @media (max-width: 767px) {
+      .event-card {
+        flex: 1 1 100%;
+      }
+    }
+    .event-card:hover {
+      transform: scale(1.02);
+    }
+    .event-bg {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 5px;
+      margin-bottom: 0.5rem;
+    }
+    .event-title {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+    }
+    .event-desc {
+      font-size: 0.9rem;
+      line-height: 1.3;
+    }
+    .event-detailed {
+      display: none;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    .event-card.expanded {
+      transform: scale(1.05);
+    }
+    .event-card.expanded .event-detailed {
+      display: block;
+    }
+    .event-nav-left, .event-nav-right {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 2rem;
+      cursor: pointer;
+      padding: 0.3rem 0.5rem;
+      background: rgba(0,0,0,0.2);
+      border-radius: 5px;
+      z-index: 10;
+    }
+    .event-nav-left { left: -40px; }
+    .event-nav-right { right: -40px; }
+  </style>
+</head>
+<body>
+  <!-- Toggle Button & Dim Overlay -->
+  <div class="toggle-btn" id="toggleButton" onclick="toggleSidebar()">
+    <div class="bar1"></div>
+    <div class="bar2"></div>
+    <div class="bar3"></div>
+  </div>
+  <div class="dimscreen" id="dimscreen"></div>
+  
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <ul style="margin-top:2rem; margin-bottom:1rem;">
+      <li><a href="index.html"> HOME</a></li>
+      <li><a href="battlepass.html"> BATTLE PASS</a></li>
+      <li><a href="map.html"> MAP</a></li>
+      <li><a href="gamemodes.html"> GAME MODES</a></li>
+      <li><a href="community.html" class="current"> COMMUNITY</a></li>
+      <li><a href="patchnotes.html"> PATCH NOTES</a></li>
+      <li><a href="about.html"> ABOUT</a></li>
+    </ul>
+    <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()"> Dark Mode</div>
+    <div class="system-toggle" id="systemToggle" onclick="toggleSystemTheme()">System Off</div>
+  </nav>
+  
+  <!-- Headbar -->
+  <div class="content-headbar" id="headbar"><span>Community</span></div>
+  
+  <!-- HERO SECTION (Exact copy from patchnotes) -->
+  <section class="hero-section">
+    <h1>COMMUNITY</h1>
+  </section>
+  
+  <!-- Call-to-Action Title -->
+  <h2 class="cta-title">Explore Our Community</h2>
+  
+  <!-- LEADERBOARD SECTION -->
+  <section>
+    <h2 class="section-title">LEADERBOARDS</h2>
+    <p class="section-subtitle">see the power players of the game!</p>
+    <div class="leaderboard-container">
+      <!-- Left Tab: default "Overall Hobby Power" -->
+      <div class="leaderboard-block" id="leaderboardBlock1">
+        <div class="leaderboard-tab-title">
+          <span id="titleTab1">Overall Hobby Power</span>
+          <select class="leaderboard-select" id="selectTab1">
+            <option value="hobbyPower" selected>Overall Hobby Power</option>
+            <option value="highestLevels">Highest Levels</option>
+            <option value="mostWins">Most Wins</option>
+            <option value="mostKills">Most Kills</option>
+          </select>
+          <div class="custom-dropdown" id="customDropdown1">
+            <span id="customDropdown1Label">Overall Hobby Power</span>
+            <div class="custom-dropdown-list" id="customDropdown1List">
+              <div class="custom-dropdown-item" data-value="hobbyPower">Overall Hobby Power</div>
+              <div class="custom-dropdown-item" data-value="highestLevels">Highest Levels</div>
+              <div class="custom-dropdown-item" data-value="mostWins">Most Wins</div>
+              <div class="custom-dropdown-item" data-value="mostKills">Most Kills</div>
+            </div>
+          </div>
+        </div>
+        <table class="leaderboard-table" id="tableTab1"></table>
+      </div>
+      <!-- Right Tab: default "Highest Levels" -->
+      <div class="leaderboard-block" id="leaderboardBlock2">
+        <div class="leaderboard-tab-title">
+          <span id="titleTab2">Highest Levels</span>
+          <select class="leaderboard-select" id="selectTab2">
+            <option value="hobbyPower">Overall Hobby Power</option>
+            <option value="highestLevels" selected>Highest Levels</option>
+            <option value="mostWins">Most Wins</option>
+            <option value="mostKills">Most Kills</option>
+          </select>
+          <div class="custom-dropdown" id="customDropdown2">
+            <span id="customDropdown2Label">Highest Levels</span>
+            <div class="custom-dropdown-list" id="customDropdown2List">
+              <div class="custom-dropdown-item" data-value="hobbyPower">Overall Hobby Power</div>
+              <div class="custom-dropdown-item" data-value="highestLevels">Highest Levels</div>
+              <div class="custom-dropdown-item" data-value="mostWins">Most Wins</div>
+              <div class="custom-dropdown-item" data-value="mostKills">Most Kills</div>
+            </div>
+          </div>
+        </div>
+        <table class="leaderboard-table" id="tableTab2"></table>
+      </div>
+    </div>
+  </section>
+  
+  <!-- FORUM POSTS SECTION -->
+  <section>
+    <h2 class="section-title">FORUM POSTS</h2>
+    <p class="section-subtitle">what have been the players yapping?</p>
+    <div class="forum-container" id="forumContainer">
+      <div class="forum-row" id="forumRow"></div>
+      <div class="forum-refresh" id="forumRefreshBtn"><span id="refreshIcon"></span> Refresh Posts</div>
+    </div>
+  </section>
+  
+  <!-- MOST POPULAR SECTION -->
+  <section>
+    <h2 class="section-title">MOST POPULAR</h2>
+    <p class="section-subtitle">the hottest hobby, maps and modes!</p>
+    <div class="popular-container" id="popularContainer">
+      <div class="popular-block" id="popularHobbiesBlock">
+        <h3>Hobbies</h3>
+        <table class="popular-table" id="tablePopularHobbies"></table>
+      </div>
+      <div class="popular-block" id="popularMapsBlock">
+        <h3>Maps</h3>
+        <table class="popular-table" id="tablePopularMaps"></table>
+      </div>
+      <div class="popular-block" id="popularModesBlock">
+        <h3>Modes</h3>
+        <table class="popular-table" id="tablePopularModes"></table>
+      </div>
+    </div>
+  </section>
+  
+  <!-- EVENTS SECTION -->
+  <section>
+    <h2 class="section-title">UPCOMING EVENTS</h2>
+    <p class="section-subtitle">join an event to win awards!</p>
+    <div class="events-container" id="eventsContainer">
+      <div class="event-nav-left" id="eventNavLeft"></div>
+      <div class="event-nav-right" id="eventNavRight"></div>
+    </div>
+  </section>
+  
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar" id="bottom-bar">
+    <div>© 2025 Purple Lunchbox Productions</div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', async function(){
+      let systemModeActive = false;
+      const toggleBtn = document.getElementById('toggleButton');
+      const dimscreen = document.getElementById('dimscreen');
+      const sidebar = document.getElementById('sidebar');
+      const themeToggle = document.getElementById('themeToggle');
+      const systemToggleBtn = document.getElementById('systemToggle');
+      const headbarEl = document.getElementById('headbar');
+      const bottomBarEl = document.getElementById('bottom-bar');
+      const refreshIcon = document.getElementById('refreshIcon');
+  
+      // NEW: Create a cache object for leaderboard sort states
+      let leaderboardSortStateCache = {};
+  
+      function toggleSidebar(){
+        sidebar.classList.toggle('active');
+        toggleBtn.classList.toggle('active');
+        dimscreen.classList.toggle('active');
+      }
+      window.toggleSidebar = toggleSidebar;
+  
+      function toggleTheme(){
+        if(systemModeActive) return;
+        document.body.classList.toggle('light-mode');
+        if(document.body.classList.contains('light-mode')){
+          themeToggle.textContent = ' Light Mode';
+          document.querySelectorAll('.toggle-btn div').forEach(d => d.style.background = '#000');
+        } else {
+          themeToggle.textContent = ' Dark Mode';
+          document.querySelectorAll('.toggle-btn div').forEach(d => d.style.background = '#fff');
+        }
+      }
+      function toggleSystemTheme(){
+        systemModeActive = !systemModeActive;
+        if(systemModeActive){
+          systemToggleBtn.classList.add('active');
+          systemToggleBtn.textContent = 'System On';
+          themeToggle.style.opacity = '0.5';
+          themeToggle.style.pointerEvents = 'none';
+          handleSystemTheme();
+        } else {
+          systemToggleBtn.classList.remove('active');
+          systemToggleBtn.textContent = 'System Off';
+          themeToggle.style.opacity = '1';
+          themeToggle.style.pointerEvents = 'auto';
+        }
+      }
+      function handleSystemTheme(){
+        if(!systemModeActive)return;
+        let mq = window.matchMedia('(prefers-color-scheme: dark)');
+        setAutoTheme(mq.matches);
+        mq.onchange = e => { if(systemModeActive){ setAutoTheme(e.matches); } };
+      }
+      function setAutoTheme(isDark){
+        if(isDark){
+          document.body.classList.remove('light-mode');
+          themeToggle.textContent = 'System:  Dark Mode';
+          document.querySelectorAll('.toggle-btn div').forEach(d => d.style.background = '#fff');
+        } else {
+          document.body.classList.add('light-mode');
+          themeToggle.textContent = 'System:  Light Mode';
+          document.querySelectorAll('.toggle-btn div').forEach(d => d.style.background = '#000');
+        }
+      }
+      window.toggleTheme = toggleTheme;
+      window.toggleSystemTheme = toggleSystemTheme;
+  
+      window.onscroll = function(){
+        handleHeadbar();
+        handleBottomBar();
+      };
+      function handleHeadbar(){
+        const heroRect = document.querySelector('.hero-section').getBoundingClientRect();
+        if(heroRect.bottom <= 0){
+          headbarEl.classList.add('show');
+        } else {
+          headbarEl.classList.remove('show');
+        }
+      }
+      function handleBottomBar(){
+        const docHeight = document.documentElement.scrollHeight;
+        const winHeight = window.innerHeight;
+        const scrolled = window.scrollY + winHeight;
+        if(scrolled >= docHeight){
+          bottomBarEl.classList.add('show');
+        } else {
+          bottomBarEl.classList.remove('show');
+        }
+      }
+  
+      /* Helper function to load JSON */
+      async function loadJSON(path) {
+        try {
+          let resp = await fetch(path);
+          if(!resp.ok) throw new Error("HTTP error " + resp.status);
+          return await resp.json();
+        } catch(e){
+          console.error("Failed to fetch " + path + ". For local testing, please run a local server.", e);
+          return [];
+        }
+      }
+  
+      /* LEADERBOARD SECTION */
+      const selectTab1 = document.getElementById('selectTab1');
+      const selectTab2 = document.getElementById('selectTab2');
+      const tableTab1 = document.getElementById('tableTab1');
+      const tableTab2 = document.getElementById('tableTab2');
+      const titleTab1 = document.getElementById('titleTab1');
+      const titleTab2 = document.getElementById('titleTab2');
+  
+      const customDropdown1 = document.getElementById('customDropdown1');
+      const customDropdown1Label = document.getElementById('customDropdown1Label');
+      const customDropdown1List = document.getElementById('customDropdown1List');
+      const customDropdown2 = document.getElementById('customDropdown2');
+      const customDropdown2Label = document.getElementById('customDropdown2Label');
+      const customDropdown2List = document.getElementById('customDropdown2List');
+  
+      let leaderboardData = {
+        hobbyPower: null,
+        highestLevels: null,
+        mostWins: null,
+        mostKills: null
+      };
+  
+      async function loadLeaderboard(type){
+        if(!leaderboardData[type]){
+          try {
+            let json = await loadJSON('./data/leaderboard_' + type + '.json');
+            if(type === 'hobbyPower'){
+              json.sort((a,b) => b.power - a.power);
+            } else if(type === 'highestLevels'){
+              json.sort((a,b) => b.level - a.level);
+            } else if(type === 'mostWins'){
+              json.sort((a,b) => b.wins - a.wins);
+            } else if(type === 'mostKills'){
+              json.sort((a,b) => b.kills - a.kills);
+            }
+            json.originalOrder = json.slice();
+            leaderboardData[type] = json;
+            leaderboardSortStateCache[type] = {}; // NEW: reset sort cache for this type
+          } catch(e){
+            console.error("Failed to fetch leaderboard data for", type, e);
+            leaderboardData[type] = [];
+          }
+        }
+        return leaderboardData[type];
+      }
+  
+      function renderLeaderboardTable(tableElem, data, type){
+        if(!data || !data.length){
+          tableElem.innerHTML = "<tr><td>No data loaded</td></tr>";
+          return;
+        }
+        tableElem.innerHTML = "";
+        let thead = document.createElement('thead');
+        let trHead = document.createElement('tr');
+        let columns = [];
+        if(type === 'hobbyPower'){
+          columns = [
+            {key:'name', label:'Hobby Name', isString:true},
+            {key:'power', label:'Power', isString:false}
+          ];
+        } else {
+          columns = [
+            {key:'username', label:'Username', isString:true},
+            {key:'hobby', label:'Hobby', isString:true}
+          ];
+          if(type==='highestLevels'){
+            columns.push({key:'level', label:'Level', isString:false});
+          } else if(type==='mostWins'){
+            columns.push({key:'wins', label:'Wins', isString:false});
+          } else if(type==='mostKills'){
+            columns.push({key:'kills', label:'Kills', isString:false});
+          }
+        }
+        trHead.style.whiteSpace = "nowrap";
+        columns.forEach(col => {
+          let th = document.createElement('th');
+          th.textContent = col.label;
+          let arrowSpan = document.createElement('span');
+          arrowSpan.classList.add('sort-arrow');
+          arrowSpan.textContent = '⇵';
+          th.appendChild(arrowSpan);
+          // NEW: Set sort state from cache or default to "default"
+          let currentState = (leaderboardSortStateCache[type] && leaderboardSortStateCache[type][col.key]) || "default";
+          th.dataset.sortState = currentState;
+  
+          th.addEventListener('click', () => {
+            // Reset other columns
+            trHead.querySelectorAll('th').forEach(other => {
+              if(other !== th) {
+                other.dataset.sortState = "default";
+                if(leaderboardSortStateCache[type]) {
+                  leaderboardSortStateCache[type][other.textContent] = "default";
+                }
+              }
+            });
+            let currentState = th.dataset.sortState;
+            let newState;
+            if(col.isString){ // Triple cycle for strings
+              if(currentState === "default"){
+                newState = "asc";
+                data.sort((a, b) => a[col.key].localeCompare(b[col.key]));
+              } else if(currentState === "asc"){
+                newState = "desc";
+                data.sort((a, b) => b[col.key].localeCompare(a[col.key]));
+              } else {
+                newState = "default";
+                data = leaderboardData[type].originalOrder.slice();
+              }
+            } else { // For numbers, only two states: default (descending) and ascending
+              if(currentState === "default"){
+                newState = "asc";
+                data.sort((a, b) => Number(a[col.key]) - Number(b[col.key]));
+              } else {
+                newState = "default";
+                data = leaderboardData[type].originalOrder.slice();
+              }
+            }
+            th.dataset.sortState = newState;
+            if(!leaderboardSortStateCache[type]) leaderboardSortStateCache[type] = {};
+            leaderboardSortStateCache[type][col.key] = newState;
+            th.classList.add('sort-animate');
+            setTimeout(() => th.classList.remove('sort-animate'), 400);
+            renderLeaderboardTable(tableElem, data, type);
+          });
+          trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+        tableElem.appendChild(thead);
+  
+        let tbody = document.createElement('tbody');
+        let maxRows = (type === 'hobbyPower') ? data.length : Math.min(data.length, 10);
+        for(let i = 0; i < maxRows; i++){
+          let row = data[i];
+          let tr = document.createElement('tr');
+          tr.style.animation = `staircaseUp 0.3s ease forwards`;
+          tr.style.animationDelay = `${i * 0.05}s`;
+          columns.forEach(col => {
+            let td = document.createElement('td');
+            td.textContent = row[col.key];
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        }
+        tableElem.appendChild(tbody);
+      }
+  
+      async function updateLeaderboardBlock(chosen, tableElem, titleElem){
+        let data = await loadLeaderboard(chosen);
+        renderLeaderboardTable(tableElem, data, chosen);
+        if(chosen === 'hobbyPower') titleElem.textContent = 'Overall Hobby Power';
+        else if(chosen === 'highestLevels') titleElem.textContent = 'Highest Levels';
+        else if(chosen === 'mostWins') titleElem.textContent = 'Most Wins';
+        else if(chosen === 'mostKills') titleElem.textContent = 'Most Kills';
+      }
+  
+      function openDropdown(dropList){
+        dropList.classList.toggle('show');
+      }
+      function closeAllDropdowns(){
+        customDropdown1List.classList.remove('show');
+        customDropdown2List.classList.remove('show');
+      }
+      document.addEventListener('click', (e) => {
+        if(!customDropdown1.contains(e.target)) customDropdown1List.classList.remove('show');
+        if(!customDropdown2.contains(e.target)) customDropdown2List.classList.remove('show');
+      });
+      function refreshGreyOutOptions(){
+        let val1 = selectTab1.value;
+        let val2 = selectTab2.value;
+        customDropdown1List.querySelectorAll('.custom-dropdown-item').forEach(it => {
+          let v = it.getAttribute('data-value');
+          if(v === val2) it.classList.add('greyed'); else it.classList.remove('greyed');
+        });
+        customDropdown2List.querySelectorAll('.custom-dropdown-item').forEach(it => {
+          let v = it.getAttribute('data-value');
+          if(v === val1) it.classList.add('greyed'); else it.classList.remove('greyed');
+        });
+      }
+  
+      customDropdown1.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openDropdown(customDropdown1List);
+      });
+      customDropdown2.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openDropdown(customDropdown2List);
+      });
+      customDropdown1List.querySelectorAll('.custom-dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+          let chosen = item.getAttribute('data-value');
+          selectTab1.value = chosen;
+          customDropdown1Label.textContent = item.textContent;
+          refreshGreyOutOptions();
+          closeAllDropdowns();
+          updateLeaderboardBlock(chosen, tableTab1, titleTab1);
+        });
+      });
+      customDropdown2List.querySelectorAll('.custom-dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+          let chosen = item.getAttribute('data-value');
+          selectTab2.value = chosen;
+          customDropdown2Label.textContent = item.textContent;
+          refreshGreyOutOptions();
+          closeAllDropdowns();
+          updateLeaderboardBlock(chosen, tableTab2, titleTab2);
+        });
+      });
+  
+      selectTab1.addEventListener('change', () => {
+        let chosen = selectTab1.value;
+        updateLeaderboardBlock(chosen, tableTab1, titleTab1);
+      });
+      selectTab2.addEventListener('change', () => {
+        let chosen = selectTab2.value;
+        updateLeaderboardBlock(chosen, tableTab2, titleTab2);
+      });
+  
+      // Initialize Leaderboard blocks
+      updateLeaderboardBlock('hobbyPower', tableTab1, titleTab1);
+      updateLeaderboardBlock('highestLevels', tableTab2, titleTab2);
+      refreshGreyOutOptions();
+  
+      /* FORUM POSTS SECTION */
+      let allForumPosts = [];
+      let remainingForumPosts = [];
+      function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+      // NEW: Modified getNextForumPosts to avoid duplicates across refreshes
+      function getNextForumPosts(n) {
+        if(remainingForumPosts.length >= n) {
+          return remainingForumPosts.splice(0, n);
+        } else {
+          let result = remainingForumPosts.splice(0, remainingForumPosts.length);
+          let needed = n - result.length;
+          // Build a new pool excluding posts already shown in this refresh cycle (result)
+          let newPool = shuffleArray(allForumPosts.slice()).filter(post => !result.includes(post));
+          if(newPool.length < needed) {
+            // If not enough remain, reset completely
+            newPool = shuffleArray(allForumPosts.slice());
+          }
+          result = result.concat(newPool.splice(0, needed));
+          remainingForumPosts = newPool;
+          return result;
+        }
+      }
+      async function loadForumPosts(){
+        if(allForumPosts.length === 0) {
+          allForumPosts = await loadJSON('./data/forumPosts.json');
+          remainingForumPosts = shuffleArray(allForumPosts.slice());
+        }
+        return allForumPosts;
+      }
+      function renderForumPosts(posts){
+        forumRow.innerHTML = "";
+        posts.forEach(post => {
+          let postDiv = document.createElement('div');
+          postDiv.classList.add('forum-post');
+          let headerDiv = document.createElement('div');
+          headerDiv.classList.add('forum-header');
+          let pfpDiv = document.createElement('div');
+          pfpDiv.classList.add('forum-pfp');
+          let userInfoDiv = document.createElement('div');
+          userInfoDiv.style.display = 'flex';
+          userInfoDiv.style.flexDirection = 'column';
+          let userNameEl = document.createElement('span');
+          userNameEl.classList.add('forum-username');
+          userNameEl.textContent = post.username;
+          let dateEl = document.createElement('span');
+          dateEl.classList.add('forum-date');
+          dateEl.textContent = post.date;
+          userInfoDiv.appendChild(userNameEl);
+          userInfoDiv.appendChild(dateEl);
+          headerDiv.appendChild(pfpDiv);
+          headerDiv.appendChild(userInfoDiv);
+          postDiv.appendChild(headerDiv);
+          
+          let contentDiv = document.createElement('div');
+          contentDiv.classList.add('post-content');
+          let infoDiv = document.createElement('div');
+          infoDiv.classList.add('post-info');
+          let titleEl = document.createElement('div');
+          titleEl.classList.add('post-title');
+          titleEl.textContent = post.title;
+          let textEl = document.createElement('div');
+          textEl.classList.add('post-text');
+          textEl.textContent = post.content || post.body || post.text || "";
+          infoDiv.appendChild(titleEl);
+          infoDiv.appendChild(textEl);
+          contentDiv.appendChild(infoDiv);
+          if(post.hasImage){
+            let imgContainer = document.createElement('div');
+            imgContainer.classList.add('post-image-container');
+            let imgEl = document.createElement('img');
+            imgEl.classList.add('post-image');
+            imgEl.src = post.imageUrl;
+            imgContainer.appendChild(imgEl);
+            contentDiv.appendChild(imgContainer);
+          }
+          postDiv.appendChild(contentDiv);
+          
+          let actionsDiv = document.createElement('div');
+          actionsDiv.classList.add('post-actions');
+          let yeahCount = document.createElement('div');
+          yeahCount.classList.add('post-yeah-count');
+          yeahCount.textContent = post.yeahCount + " Yeahs";
+          let yeahBtn = document.createElement('button');
+          yeahBtn.classList.add('yeah-btn');
+          let iconSpan = document.createElement('span');
+          iconSpan.classList.add('yeah-icon');
+          iconSpan.textContent = "";
+          yeahBtn.appendChild(iconSpan);
+          yeahBtn.appendChild(document.createTextNode("Yeah!"));
+          let clicked = false;
+          yeahBtn.addEventListener('click', () => {
+            if(!clicked){
+              post.yeahCount++;
+              yeahCount.textContent = post.yeahCount + " Yeahs";
+              yeahBtn.style.background = "rgba(255,255,255,0.4)";
+              clicked = true;
+            } else {
+              post.yeahCount--;
+              yeahCount.textContent = post.yeahCount + " Yeahs";
+              yeahBtn.style.background = "rgba(255,255,255,0.2)";
+              clicked = false;
+            }
+          });
+          actionsDiv.appendChild(yeahCount);
+          actionsDiv.appendChild(yeahBtn);
+          postDiv.appendChild(actionsDiv);
+          forumRow.appendChild(postDiv);
+        });
+      }
+      const forumRow = document.getElementById('forumRow');
+      const forumRefreshBtnEl = document.getElementById('forumRefreshBtn');
+      let isRefreshing = false;
+      forumRefreshBtnEl.addEventListener('click', async () => {
+        if (isRefreshing) return;
+        isRefreshing = true;
+        forumRefreshBtnEl.textContent = '';
+        const glyphs = ["","","","","","","",""];
+        let idx = 0;
+        const intervalId = setInterval(() => {
+          forumRefreshBtnEl.textContent = glyphs[idx];
+          idx = (idx + 1) % glyphs.length;
+        }, 80);
+        forumRow.style.opacity = "0";
+        try {
+          await Promise.race([
+            new Promise(resolve => setTimeout(resolve, 600)),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Timed out")), 10000))
+          ]);
+          forumRow.innerHTML = "";
+          renderForumPosts(getNextForumPosts(4));
+          forumRow.style.opacity = "1";
+        } catch(error){
+          forumRefreshBtnEl.textContent = "error fetching: timed out";
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } finally {
+          clearInterval(intervalId);
+          forumRefreshBtnEl.textContent = " Refresh Posts";
+          isRefreshing = false;
+        }
+      });
+      await loadForumPosts();
+      renderForumPosts(getNextForumPosts(4));
+  
+      /* MOST POPULAR SECTION */
+      const tablePopularHobbies = document.getElementById('tablePopularHobbies');
+      const tablePopularMaps = document.getElementById('tablePopularMaps');
+      const tablePopularModes = document.getElementById('tablePopularModes');
+  
+      async function loadPopularData(){
+        try {
+          let [hobbies, maps, modes] = await Promise.all([
+            loadJSON('./data/mostPopularHobbies.json'),
+            loadJSON('./data/mostPopularMaps.json'),
+            loadJSON('./data/mostPopularModes.json')
+          ]);
+          return { hobbies, maps, modes };
+        } catch(e){
+          console.error("Failed to fetch popular data", e);
+          return { hobbies: [], maps: [], modes: [] };
+        }
+      }
+      function renderPopularTable(tableElem, data, labelKey, valueKey){
+        tableElem.innerHTML = "";
+        let thead = document.createElement('thead');
+        let trHead = document.createElement('tr');
+        let th1 = document.createElement('th');
+        th1.textContent = labelKey;
+        let th2 = document.createElement('th');
+        th2.textContent = valueKey;
+        trHead.appendChild(th1);
+        trHead.appendChild(th2);
+        thead.appendChild(trHead);
+        tableElem.appendChild(thead);
+  
+        let tbody = document.createElement('tbody');
+        data.forEach((item, i) => {
+          let tr = document.createElement('tr');
+          tr.style.animation = `staircaseUp 0.3s ease forwards`;
+          tr.style.animationDelay = `${i * 0.05}s`;
+          let td1 = document.createElement('td');
+          td1.textContent = item[labelKey];
+          let td2 = document.createElement('td');
+          td2.textContent = item[valueKey];
+          tr.appendChild(td1);
+          tr.appendChild(td2);
+          tbody.appendChild(tr);
+        });
+        tableElem.appendChild(tbody);
+      }
+      async function initPopularData(){
+        let { hobbies, maps, modes } = await loadPopularData();
+        renderPopularTable(tablePopularHobbies, hobbies, "name", "count");
+        renderPopularTable(tablePopularMaps, maps, "name", "count");
+        renderPopularTable(tablePopularModes, modes, "name", "count");
+      }
+      initPopularData();
+  
+      /* EVENTS SECTION */
+      const eventsContainer = document.getElementById('eventsContainer');
+      const eventNavLeft = document.getElementById('eventNavLeft');
+      const eventNavRight = document.getElementById('eventNavRight');
+      let currentEventIndex = 0;
+      let eventsData = [];
+  
+      async function loadEvents(){
+        try {
+          let data = await loadJSON('./data/events.json');
+          return data;
+        } catch(e){
+          console.error("Failed to fetch events", e);
+          return [];
+        }
+      }
+      function renderEvents(){
+        eventsContainer.querySelectorAll('.event-card').forEach(ec => ec.remove());
+        let visibleCount = 3;
+        for(let i = currentEventIndex; i < currentEventIndex + visibleCount; i++){
+          if(i >= eventsData.length) break;
+          let evt = eventsData[i];
+          let card = document.createElement('div');
+          card.classList.add('event-card');
+          let bgImg = document.createElement('img');
+          bgImg.classList.add('event-bg');
+          bgImg.src = evt.image;
+          let title = document.createElement('div');
+          title.classList.add('event-title');
+          title.textContent = evt.title;
+          let desc = document.createElement('div');
+          desc.classList.add('event-desc');
+          desc.textContent = evt.shortDesc;
+          let detailed = document.createElement('div');
+          detailed.classList.add('event-detailed');
+          detailed.textContent = evt.longDesc;
+  
+          card.appendChild(bgImg);
+          card.appendChild(title);
+          card.appendChild(desc);
+          card.appendChild(detailed);
+  
+          card.addEventListener('click', () => {
+            card.classList.toggle('expanded');
+          });
+          eventsContainer.appendChild(card);
+        }
+      }
+      eventNavLeft.addEventListener('click', () => {
+        if(currentEventIndex > 0){
+          currentEventIndex--;
+          renderEvents();
+        }
+      });
+      eventNavRight.addEventListener('click', () => {
+        if(currentEventIndex + 3 < eventsData.length){
+          currentEventIndex++;
+          renderEvents();
+        }
+      });
+      eventsData = await loadEvents();
+      renderEvents();
+    });
+  </script>
+</body>
+</html>

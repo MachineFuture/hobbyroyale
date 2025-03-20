@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hobby Royale - About Page</title>
+  <style>
+    @font-face {
+      font-family: 'NintendoFont';
+      src: url('https://machinefuture.github.io/fonts/nintendo_NTLGDB_001.ttf') format('truetype');
+      font-display: swap;
+    }
+    :root {
+      --sidebar-dark: #4f4684;
+      --sidebar-light: #e2e0f0;
+      --bg-dark: #5d5c64;
+      --bg-light: #f3f2f5;
+      --txt-dark: #fff;
+      --txt-light: #000;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'NintendoFont', sans-serif;
+    }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--txt-dark);
+      overflow-x: hidden;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    body.light-mode {
+      background-color: var(--bg-light);
+      color: var(--txt-light);
+    }
+
+    /* Dim screen overlay for sidebar toggle */
+    .dimscreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background-color: rgba(0,0,0,0.5);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s;
+      z-index: 998;
+    }
+    .dimscreen.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Toggle button using 5px shift for symmetrical X */
+    .toggle-btn {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      width: 30px;
+      height: 25px;
+      cursor: pointer;
+      z-index: 1100;
+    }
+    .toggle-btn div {
+      height: 3px;
+      background: #fff;
+      margin: 4px;
+      transition: 0.4s;
+      transform-origin: center;
+    }
+    .toggle-btn.active .bar1 {
+      transform: rotate(-45deg) translate(-5px, 5px);
+    }
+    .toggle-btn.active .bar2 {
+      opacity: 0;
+    }
+    .toggle-btn.active .bar3 {
+      transform: rotate(45deg) translate(-5px, -5px);
+    }
+
+    /* Sidebar from main page */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -250px;
+      height: 100vh;
+      width: 250px;
+      background-color: var(--sidebar-dark);
+      padding: 1rem;
+      transition: left 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+      z-index: 1000;
+    }
+    body.light-mode .sidebar {
+      background-color: var(--sidebar-light);
+    }
+    .sidebar.active {
+      left: 0;
+    }
+    .sidebar ul {
+      list-style: none;
+      margin-top: 2rem;
+      padding: 0;
+    }
+    .sidebar ul li {
+      margin-bottom: 0.6rem;
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    .sidebar.active ul li {
+      animation: appear 0.4s forwards;
+    }
+    .sidebar.active ul li:nth-child(1) { animation-delay: 0.1s; }
+    .sidebar.active ul li:nth-child(2) { animation-delay: 0.15s; }
+    .sidebar.active ul li:nth-child(3) { animation-delay: 0.2s; }
+    .sidebar.active ul li:nth-child(4) { animation-delay: 0.25s; }
+    .sidebar.active ul li:nth-child(5) { animation-delay: 0.3s; }
+    .sidebar.active ul li:nth-child(6) { animation-delay: 0.35s; }
+    .sidebar.active ul li:nth-child(7) { animation-delay: 0.4s; }
+    @keyframes appear {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .sidebar ul li a {
+      text-decoration: none;
+      font-size: 1.2rem;
+      color: inherit;
+      transition: background-color 0.3s;
+      padding: 0.2rem 0.3rem;
+      display: block;
+    }
+    .sidebar ul li a:hover {
+      background-color: rgba(255,255,255,0.3);
+    }
+    /* Highlight the ABOUT link here */
+    .sidebar ul li a.current {
+      background-color: rgba(255,255,255,0.5);
+      color: #000;
+      border-radius: 5px;
+    }
+    /* (NEW) in light mode, highlight the current link differently */
+    body.light-mode .sidebar ul li a.current {
+      background-color: rgba(0,0,0,0.3);
+      color: #fff;
+    }
+
+    /* Theme & system toggles at bottom of sidebar */
+    .theme-toggle {
+      position: absolute;
+      bottom: 4.5rem; left: 1rem;
+      cursor: pointer;
+      border: 1px solid #fff;
+      padding: 0.3rem 0.5rem;
+      border-radius: 5px;
+      transition: border 0.3s;
+    }
+    .system-toggle {
+      position: absolute;
+      bottom: 1rem; left: 1rem;
+      font-size: 0.9rem;
+      border: 1px dashed #fff;
+      padding: 0.3rem;
+      margin-top: 1rem;
+      display: inline-block;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+    .system-toggle.active {
+      border: 1px solid #fff;
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* Slideshow in the background, sticks as user scrolls */
+    .slideshow {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: -1;
+      overflow: hidden;
+    }
+    .slideshow img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 1s;
+    }
+    .slideshow img.active {
+      opacity: 1;
+    }
+
+    /* Headbar at top (like main page) but says "About" */
+    .content-headbar {
+      position: fixed;
+      top: -60px; left: 0;
+      width: 100%;
+      height: 60px;
+      background-color: var(--sidebar-dark);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: top 0.4s;
+      z-index: 999;
+    }
+    body.light-mode .content-headbar {
+      background-color: var(--sidebar-light);
+      color: #000;
+    }
+    .content-headbar.show {
+      top: 0;
+    }
+
+    /* Hero section for About page: full viewport, only big title visible initially */
+    .about-hero {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .about-hero h1 {
+      font-size: 6rem;
+      background: rgba(255,255,255,0.2);
+      color: #000;
+      padding: 1rem 2rem;
+      border-radius: 15px;
+      opacity: 0.9;
+      text-transform: uppercase;
+    }
+
+    /* The content section that slides in with non-linear animation */
+    .about-content {
+      position: relative;
+      min-height: 100vh;
+      width: 100%;
+      padding: 4rem 1rem;
+      backdrop-filter: none;
+      transition: backdrop-filter 0.5s;
+    }
+    .about-content.filtered {
+      backdrop-filter: blur(3px) brightness(60%);
+    }
+
+    /* Author container (like your existing code) with slide/fade animations */
+    .author-section {
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      margin-top: 3rem;
+      background: rgba(255,255,255,0.2);
+      padding: 2rem;
+      border-radius: 15px;
+
+      /* hidden by default, then animated in on scroll */
+      opacity: 0;
+      transform: translateY(50px);
+      transition: all 1s cubic-bezier(.68,-0.55,.27,1.55);
+    }
+    .author-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .author-pfp {
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-right: 2rem;
+      flex-shrink: 0;
+    }
+    .author-pfp img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .author-info {
+      flex: 1 1 300px;
+      max-width: 600px;
+    }
+    .author-info .role {
+      font-size: 1rem;
+      opacity: 0.8;
+      margin-bottom: 0.5rem;
+    }
+    .author-info .name {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+    }
+    .author-info .description {
+      font-size: 1.1rem;
+      line-height: 1.4;
+      margin-bottom: 1rem;
+    }
+    .placeholder-line {
+      margin-top: 1rem;
+      font-size: 1rem;
+      opacity: 0.7;
+    }
+    @media (max-width: 768px){
+      .author-section {
+        flex-direction: column;
+        text-align: center;
+      }
+      .author-pfp {
+        margin-right: 0;
+        margin-bottom: 1rem;
+      }
+    }
+
+    /* Bottom bar (like main page) but no "Coming 20XX" text */
+    .bottom-bar {
+      position: fixed;
+      bottom: -70px; left: 0;
+      width: 100%; height: 70px;
+      background-color: var(--sidebar-dark);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: bottom 0.4s;
+      z-index: 997;
+    }
+    body.light-mode .bottom-bar {
+      background-color: var(--sidebar-light);
+      color: #000;
+    }
+    .bottom-bar.show {
+      bottom: 0;
+    }
+    @keyframes appear {
+      to { opacity: 1; transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Toggle button & dim overlay -->
+  <div class="toggle-btn" id="toggleButton" onclick="toggleSidebar()">
+    <div class="bar1"></div>
+    <div class="bar2"></div>
+    <div class="bar3"></div>
+  </div>
+  <div class="dimscreen" id="dimscreen"></div>
+
+  <!-- Sidebar (with ABOUT link highlighted) -->
+  <nav class="sidebar" id="sidebar">
+    <ul style="margin-top:2rem; margin-bottom:1rem;">
+      <li><a href="index.html"> HOME</a></li>
+      <li><a href="battlepass.html"> BATTLE PASS</a></li>
+      <li><a href="map.html"> MAP</a></li>
+      <li><a href="gamemodes.html"> GAME MODES</a></li>
+      <li><a href="community.html"> COMMUNITY</a></li>
+      <li><a href="patchnotes.html"> PATCH NOTES</a></li>
+      <li><a href="about.html" class="current"> ABOUT</a></li>
+    </ul>
+    <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()"> Dark Mode</div>
+    <div class="system-toggle" id="systemToggle" onclick="toggleSystemTheme()">System Off</div>
+  </nav>
+
+  <!-- Headbar (like main page) but says "About" -->
+  <div class="content-headbar" id="headbar"><span>About</span></div>
+
+  <!-- Slideshow background -->
+  <div class="slideshow" id="slideshow">
+    <img src="assets/images/aboutslide1.jpg" alt="Slide1" class="active">
+    <img src="assets/images/aboutslide2.jpg" alt="Slide2">
+    <img src="assets/images/aboutslide3.jpg" alt="Slide3">
+    <img src="assets/images/aboutslide4.jpg" alt="Slide4">
+    <img src="assets/images/aboutslide5.jpg" alt="Slide5">
+    <img src="assets/images/aboutslide6.jpg" alt="Slide6">
+    <img src="assets/images/aboutslide7.jpg" alt="Slide7">
+    <img src="assets/images/aboutslide8.jpg" alt="Slide8">
+  </div>
+
+  <!-- 1) Hero section that shows only the ABOUT title initially -->
+  <section class="about-hero" id="heroSection">
+    <h1>ABOUT</h1>
+  </section>
+
+  <!-- 2) About content section, slides in on scroll, filter effect on further scroll -->
+  <section class="about-content" id="aboutContent">
+    <div class="author-section" id="authorSection">
+      <div class="author-pfp">
+        <img src="assets/images/authorpfp.jpg" alt="Author PFP">
+      </div>
+      <div class="author-info">
+        <div class="role">Game Director</div>
+        <div class="name">Future Machine</div>
+        <div class="description">
+          Hobby Royale is the latest work to my fictional game studio called the Purple Lunchbox Productions. the game is all about making hobbies fun to understand, and a little bit of battle makes them look more spicy! hope this game helps you delve into your true interests, and you, my mate, shall continue your journey.
+          <br/><br/>
+          Shoutout to my 2017 self for starting them all!
+        </div>
+        <div class="placeholder-line">[Placeholder line 1]</div>
+        <div class="placeholder-line">[Placeholder line 2]</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom bar (like main page, minus "Coming 20XX") -->
+  <div class="bottom-bar" id="bottom-bar">
+    <div>© 2025 Purple Lunchbox Productions</div>
+  </div>
+
+  <script>
+    /* Sidebar & theme toggles from main page code */
+    let systemModeActive = false;
+    const toggleBtn = document.getElementById('toggleButton');
+    const dimscreen = document.getElementById('dimscreen');
+    const sidebar = document.getElementById('sidebar');
+    const themeToggle = document.getElementById('themeToggle');
+    const systemToggleBtn = document.getElementById('systemToggle');
+
+    function toggleSidebar(){
+      sidebar.classList.toggle('active');
+      toggleBtn.classList.toggle('active');
+      dimscreen.classList.toggle('active');
+      if(document.body.classList.contains('light-mode')){
+        toggleBtn.querySelectorAll('div').forEach(d=>{ d.style.background='#000'; });
+      } else {
+        toggleBtn.querySelectorAll('div').forEach(d=>{ d.style.background='#fff'; });
+      }
+    }
+    function toggleTheme(){
+      if(systemModeActive) return;
+      document.body.classList.toggle('light-mode');
+      if(document.body.classList.contains('light-mode')){
+        themeToggle.textContent = ' Light Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#000');
+      } else {
+        themeToggle.textContent = ' Dark Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#fff');
+      }
+    }
+    function toggleSystemTheme(){
+      systemModeActive = !systemModeActive;
+      if(systemModeActive){
+        systemToggleBtn.classList.add('active');
+        systemToggleBtn.textContent = 'System On';
+        themeToggle.style.opacity = '0.5';
+        themeToggle.style.pointerEvents = 'none';
+        handleSystemTheme();
+      } else {
+        systemToggleBtn.classList.remove('active');
+        systemToggleBtn.textContent = 'System Off';
+        themeToggle.style.opacity = '1';
+        themeToggle.style.pointerEvents = 'auto';
+      }
+    }
+    function handleSystemTheme(){
+      if(!systemModeActive)return;
+      let mq = window.matchMedia('(prefers-color-scheme: dark)');
+      setAutoTheme(mq.matches);
+      mq.onchange = e=>{ if(systemModeActive){ setAutoTheme(e.matches); } };
+    }
+    function setAutoTheme(isDark){
+      if(isDark){
+        document.body.classList.remove('light-mode');
+        themeToggle.textContent = 'System:  Dark Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#fff');
+      } else {
+        document.body.classList.add('light-mode');
+        themeToggle.textContent = 'System:  Light Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#000');
+      }
+    }
+
+    /* Slideshow logic: 8 images, 7s each, faint crossfade */
+    let slides = document.querySelectorAll('#slideshow img');
+    let currentSlide = 0;
+    function showSlide(index){
+      slides.forEach((img,i)=>{
+        img.classList.remove('active');
+        if(i===index){
+          img.classList.add('active');
+        }
+      });
+    }
+    setInterval(()=>{
+      currentSlide = (currentSlide+1) % slides.length;
+      showSlide(currentSlide);
+    },7000);
+
+    /* Headbar & bottom bar logic: same as main page */
+    const headbarEl = document.getElementById('headbar');
+    const bottomBarEl = document.getElementById('bottom-bar');
+    window.onscroll = function(){
+      handleHeroScroll();
+      handleBottomBar();
+      handleAboutScrollFilter();
+      handleAuthorSectionReveal();
+    };
+    function handleHeroScroll(){
+      const heroSec = document.getElementById('heroSection').getBoundingClientRect();
+      if(heroSec.bottom <= 0){
+        headbarEl.classList.add('show');
+      } else {
+        headbarEl.classList.remove('show');
+      }
+    }
+    function handleBottomBar(){
+      const docHeight = document.documentElement.scrollHeight;
+      const winHeight = window.innerHeight;
+      const scrolled = window.scrollY + winHeight;
+      if(scrolled >= docHeight){
+        bottomBarEl.classList.add('show');
+      } else {
+        bottomBarEl.classList.remove('show');
+      }
+    }
+
+    /* Filter effect on aboutContent as user scrolls further */
+    function handleAboutScrollFilter(){
+      const aboutBg = document.getElementById('aboutContent');
+      const rect = aboutBg.getBoundingClientRect();
+      if(rect.top < window.innerHeight * 0.4){
+        aboutBg.classList.add('filtered');
+      } else {
+        aboutBg.classList.remove('filtered');
+      }
+    }
+
+    /* Reveal author-section with non-linear animation once in view */
+    function handleAuthorSectionReveal(){
+      const authorSec = document.getElementById('authorSection');
+      const rect = authorSec.getBoundingClientRect();
+      if(rect.top < window.innerHeight && rect.bottom > 0){
+        authorSec.classList.add('visible');
+      } else {
+        authorSec.classList.remove('visible');
+      }
+    }
+
+    /* Make sure the video/slide background is set up on load */
+    function main(){
+      showSlide(currentSlide);
+    }
+    main();
+  </script>
+</body>
+</html>

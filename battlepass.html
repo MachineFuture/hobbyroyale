@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hobby Royale - Battle Pass</title>
+  <style>
+    @font-face {
+      font-family: 'NintendoFont';
+      src: url('https://machinefuture.github.io/fonts/nintendo_NTLGDB_001.ttf') format('truetype');
+      font-display: swap;
+    }
+    :root {
+      --sidebar-dark: #4f4684;
+      --sidebar-light: #e2e0f0;
+      --bg-dark: #5d5c64;
+      --bg-light: #f3f2f5;
+      --txt-dark: #fff;
+      --txt-light: #000;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'NintendoFont', sans-serif;
+    }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--txt-dark);
+      overflow-x: hidden;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    body.light-mode {
+      background-color: var(--bg-light);
+      color: var(--txt-light);
+    }
+    /* Ensure sidebar link colors adapt to theme */
+    .sidebar ul li a {
+      color: var(--txt-dark);
+      transition: color 0.3s;
+    }
+    body.light-mode .sidebar ul li a {
+      color: var(--txt-light);
+    }
+
+    /* Dim overlay – covers all content except sidebar & toggle */
+    .dimscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0,0,0,0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s;
+      z-index: 2000;
+    }
+    .dimscreen.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Toggle button with 5px transforms */
+    .toggle-btn {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      width: 30px;
+      height: 25px;
+      cursor: pointer;
+      z-index: 2002;
+    }
+    .toggle-btn div {
+      height: 3px;
+      background: #fff;
+      margin: 4px;
+      transition: 0.4s;
+      transform-origin: center;
+    }
+    .toggle-btn.active .bar1 {
+      transform: rotate(-45deg) translate(-5px, 5px);
+    }
+    .toggle-btn.active .bar2 {
+      opacity: 0;
+    }
+    .toggle-btn.active .bar3 {
+      transform: rotate(45deg) translate(-5px, -5px);
+    }
+
+    /* Sidebar – above dim overlay */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -250px;
+      width: 250px;
+      height: 100vh;
+      background-color: var(--sidebar-dark);
+      padding: 1rem;
+      transition: left 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+      z-index: 2001;
+    }
+    body.light-mode .sidebar {
+      background-color: var(--sidebar-light);
+    }
+    .sidebar.active {
+      left: 0;
+    }
+    .sidebar ul {
+      list-style: none;
+      margin-top: 2rem;
+      padding: 0;
+    }
+    /* Slide-in animation for sidebar li */
+    .sidebar ul li {
+      margin-bottom: 0.6rem;
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    .sidebar.active ul li {
+      animation: appear 0.4s forwards;
+    }
+    .sidebar.active ul li:nth-child(1) { animation-delay: 0.1s; }
+    .sidebar.active ul li:nth-child(2) { animation-delay: 0.15s; }
+    .sidebar.active ul li:nth-child(3) { animation-delay: 0.2s; }
+    .sidebar.active ul li:nth-child(4) { animation-delay: 0.25s; }
+    .sidebar.active ul li:nth-child(5) { animation-delay: 0.3s; }
+    .sidebar.active ul li:nth-child(6) { animation-delay: 0.35s; }
+    .sidebar.active ul li:nth-child(7) { animation-delay: 0.4s; }
+    @keyframes appear {
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    .sidebar ul li a {
+      text-decoration: none;
+      font-size: 1.2rem;
+      padding: 0.2rem 0.3rem;
+      display: block;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .sidebar ul li a:hover {
+      background-color: rgba(255,255,255,0.3);
+    }
+    /* Highlight BATTLE PASS link & adapt to theme */
+    .sidebar ul li a.current {
+      background-color: rgba(255,255,255,0.5);
+      color: #000;
+      border-radius: 5px;
+    }
+    body.light-mode .sidebar ul li a.current {
+      background-color: rgba(0,0,0,0.3);
+      color: #fff;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      bottom: 4.5rem;
+      left: 1rem;
+      cursor: pointer;
+      border: 1px solid #fff;
+      padding: 0.3rem 0.5rem;
+      border-radius: 5px;
+    }
+    .system-toggle {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      font-size: 0.9rem;
+      border: 1px dashed #fff;
+      padding: 0.3rem;
+      margin-top: 1rem;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+    .system-toggle.active {
+      border: 1px solid #fff;
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* Headbar & Bottom Bar */
+    .content-headbar {
+      position: fixed;
+      top: -60px;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background-color: var(--sidebar-dark);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: top 0.4s;
+      z-index: 999;
+    }
+    body.light-mode .content-headbar {
+      background-color: var(--sidebar-light);
+      color: #000;
+    }
+    .content-headbar.show {
+      top: 0;
+    }
+    .bottom-bar {
+      position: fixed;
+      bottom: -70px;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      background-color: var(--sidebar-dark);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: bottom 0.4s;
+      z-index: 997;
+    }
+    body.light-mode .bottom-bar {
+      background-color: var(--sidebar-light);
+      color: #000;
+    }
+    .bottom-bar.show {
+      bottom: 0;
+    }
+
+    /* Hero section with fixed background for entire page */
+    .hero-section {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      background: url('assets/images/battlepass-hero.jpg') center center/cover no-repeat fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-section h1 {
+      font-size: 5rem;
+      color: #fff;
+      text-transform: uppercase;
+      background: rgba(0,0,0,0.5);
+      padding: 1rem 2rem;
+      border-radius: 10px;
+      transition: opacity 0.4s;
+    }
+
+    /* Timeline with line on the left; no overall background */
+    .timeline {
+      position: relative;
+      width: 90%;
+      max-width: 1200px;
+      /* (NEW) move it up by reducing top margin from 4rem to 2rem */
+      margin: 2rem auto;
+      border-left: 4px solid var(--sidebar-dark);
+      background: none;
+      padding: 2rem;
+    }
+    /* Title above stations, with fade-in */
+    .timeline-title {
+      margin-left: 2rem;
+      font-size: 2rem;
+      color: var(--txt-dark);
+      opacity: 0;
+      animation: titleFadeIn 1s cubic-bezier(0.68,-0.55,0.27,1.55) forwards;
+      margin-bottom: 1rem;
+    }
+    body.light-mode .timeline-title {
+      color: var(--txt-light);
+    }
+    @keyframes titleFadeIn {
+      to { opacity: 1; }
+    }
+    /* "More seasons" text below stations, glowing effect */
+    .more-seasons {
+      margin-left: 2rem;
+      font-size: 1.5rem;
+      color: var(--txt-dark);
+      text-shadow: 0 0 10px rgba(255,255,255,0.6);
+      opacity: 0;
+      animation: glowEffect 2s cubic-bezier(0.68,-0.55,0.27,1.55) infinite alternate;
+    }
+    body.light-mode .more-seasons {
+      color: var(--txt-light);
+      text-shadow: 0 0 10px rgba(0,0,0,0.6);
+    }
+    @keyframes glowEffect {
+      from { opacity: 0.5; }
+      to { opacity: 1; }
+    }
+
+    .station {
+      position: relative;
+      margin-left: 2rem;
+      margin-bottom: 2rem;
+      cursor: pointer;
+    }
+    .station-content {
+      transition: transform 0.6s cubic-bezier(0.68,-0.55,0.27,1.55);
+      background: rgba(255,255,255,0.1);
+      padding: 0.5rem;
+      border-radius: 5px;
+    }
+    /* (NEW) in light mode, station content is darker for better visibility */
+    body.light-mode .station-content {
+      background: rgba(0,0,0,0.2);
+    }
+    .station:hover .station-content {
+      transform: scale(1.05);
+    }
+    /* Dot adjusted to -80px as requested */
+    .dot {
+      position: absolute;
+      left: -80px;
+      top: 0.9rem;
+      width: 28px;
+      height: 28px;
+      background: #fff;
+      border: 3px solid var(--sidebar-dark);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .station-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+    }
+    .station-id {
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+    /* Instead of tooltip, station description expands downward */
+    .station-desc {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      /* (NEW) large max-height so it adapts to text length */
+      transition: max-height 0.5s cubic-bezier(0.68,-0.55,0.27,1.55), opacity 0.5s ease;
+      margin-top: 0.5rem;
+    }
+    .station:hover .station-desc {
+      max-height: 9999px; /* large enough for any text length */
+      opacity: 1;
+    }
+
+    /* Station Details Overlay with non-linear animation */
+    .station-details {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100vh;
+      background-color: rgba(0,0,0,0.8);
+      color: #fff;
+      display: none;
+      flex-direction: column;
+      padding: 2rem;
+      overflow-y: auto;
+      z-index: 1002;
+      transform: scale(0.8) translateY(50px);
+      opacity: 0;
+      transition: transform 0.6s cubic-bezier(0.68,-0.55,0.27,1.55), opacity 0.6s;
+    }
+    .station-details.active {
+      display: flex;
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+    body.light-mode .station-details {
+      background-color: rgba(255,255,255,0.8);
+      color: #000;
+    }
+    .station-details-content {
+      flex: 1; margin-top: 3rem;
+    }
+    .station-details h2 {
+      margin-bottom: 1rem;
+    }
+    .station-details p {
+      margin-bottom: 1rem;
+    }
+    .back-btn {
+      position: fixed;
+      bottom: 2rem; right: 2rem;
+      font-size: 1.2rem;
+      cursor: pointer;
+      background: rgba(255,255,255,0.2);
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+    }
+
+    /* Carousel for items, with fixed item height & auto width */
+    .carousel {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      margin-top: 1rem;
+    }
+    .carousel .items {
+      display: flex;
+      transition: transform 0.8s ease-in-out;
+    }
+    .carousel .item {
+      margin-right: 1rem;
+      background: rgba(255,255,255,0.1);
+      padding: 1rem;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    body.light-mode .carousel .item {
+      background: rgba(0,0,0,0.2); /* (NEW) darker in light mode for better visibility */
+    }
+    .carousel .item img {
+      height: 150px;
+      width: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .carousel .item.active {
+      border: 2px solid #fff;
+    }
+    .carousel .item-description {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .carousel .item.active + .item-description {
+      display: block;
+    }
+    @keyframes appear {
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Toggle Button & Dim Overlay -->
+  <div class="toggle-btn" id="toggleButton" onclick="toggleSidebar()">
+    <div class="bar1"></div>
+    <div class="bar2"></div>
+    <div class="bar3"></div>
+  </div>
+  <div class="dimscreen" id="dimscreen"></div>
+
+  <!-- Sidebar (Battle Pass highlighted) -->
+  <nav class="sidebar" id="sidebar">
+    <ul>
+      <li><a href="index.html"> HOME</a></li>
+      <li><a href="battlepass.html" class="current"> BATTLE PASS</a></li>
+      <li><a href="map.html"> MAP</a></li>
+      <li><a href="gamemodes.html"> GAME MODES</a></li>
+      <li><a href="community.html"> COMMUNITY</a></li>
+      <li><a href="patchnotes.html"> PATCH NOTES</a></li>
+      <li><a href="about.html"> ABOUT</a></li>
+    </ul>
+    <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()"> Dark Mode</div>
+    <div class="system-toggle" id="systemToggle" onclick="toggleSystemTheme()">System Off</div>
+  </nav>
+
+  <!-- Headbar -->
+  <div class="content-headbar" id="headbar"><span>Battle Pass</span></div>
+
+  <!-- Hero Section -->
+  <section class="hero-section" id="heroSection">
+    <h1>BATTLE PASS</h1>
+  </section>
+
+  <!-- Timeline with new title and more seasons text -->
+  <section class="timeline" id="timeline">
+    <h2 class="timeline-title">Season Timeline</h2>
+
+    <!-- 8 stations -->
+    <div class="station" data-station="D01" data-title="[Placeholder Title]" data-brief="Brief desc D01" data-full="Full desc D01" data-bg="assets/images/battlepass-d01.jpg">
+      <div class="dot"></div>
+      <div class="station-content">
+        <div class="station-title">Winning Railways</div>
+        <div class="station-id">D01</div>
+        <div class="station-desc">Brief desc D01</div>
+      </div>
+    </div>
+    <div class="station" data-station="D02" data-title="[Placeholder Title]" data-brief="Brief desc D02" data-full="Full desc D02" data-bg="assets/images/battlepass-d02.jpg">
+      <div class="dot"></div>
+      <div class="station-content">
+        <div class="station-title">Short-Scratched</div>
+        <div class="station-id">D02</div>
+        <div class="station-desc">Brief desc D02</div>
+      </div>
+    </div>
+    <div class="station" data-station="D03" data-title="[Placeholder Title]" data-brief="Brief desc D03" data-full="Full desc D03" data-bg="assets/images/battlepass-d03.jpg">
+      <div class="dot"></div>
+      <div class="station-content">
+        <div class="station-title">Crush n' Smash</div>
+        <div class="station-id">D03</div>
+        <div class="station-desc">Brief desc D03</div>
+      </div>
+    </div>
+    <div class="station" data-station="D04" data-title="[Placeholder Title]" data-brief="Brief desc D04" data-full="Full desc D04" data-bg="assets/images/battlepass-d04.jpg">
+      <div class="dot"></div>
+      <div class="station-content">
+        <div class="station-title">Creating World...</div>
+        <div class="station-id">D04</div>
+        <div class="station-desc">Brief desc D04</div>
+      </div>
+    </div>
+    <div class="station" data-station="D05" data-title="[Placeholder Title]" data-brief="Brief desc D05" data-full="Full desc D05" data-bg="assets/images/battlepass-d05.jpg">
+      <div class="dot"></div>
+      <div class="station-content">
+        <div class="station-title">Hobby Royale: Millennium Edition</div>
+        <div class="station-id">D05</div>
+        <div class="station-desc">Brief desc D05</div>
+      </div>
+    </div>
+    <div class="station" data-station="D06" data-title="[Placeholder Title]" data-brief="Brief desc D06" data-full="Full desc D06" data-bg="assets/images/battlepass-d06.jpg">
+      <div class="dot"></div>
+      <div class="station-content">
+        <div class="station-title">310 93 6595</div>
+        <div class="station-id">D06</div>
+        <div class="station-desc">Brief desc D06</div>
+      </div>
+    </div>
+    <div class="station" data-station="D07" data-title="[Placeholder Title]" data-brief="Brief desc D07" data-full="Full desc D07" data-bg="assets/images/battlepass-d07.jpg">
+      <div class="dot"></div>
+      <div class="station-content">
+        <div class="station-title">Chapter Von Nintendo</div>
+        <div class="station-id">D07</div>
+        <div class="station-desc">Brief desc D07</div>
+      </div>
+    </div>
+    <div class="station" data-station="D08" data-title="[Placeholder Title]" data-brief="Brief desc D08" data-full="Full desc D08" data-bg="assets/images/battlepass-d08.jpg">
+      <div class="dot"></div>
+      <div class="station-content">
+        <div class="station-title">Back to Victory</div>
+        <div class="station-id">D08</div>
+        <div class="station-desc">Brief desc D08</div>
+      </div>
+    </div>
+
+    <div class="more-seasons">More seasons coming...</div>
+  </section>
+
+  <!-- Station Details Overlay -->
+  <div class="station-details" id="stationDetails">
+    <div class="station-details-content">
+      <h2 id="stationDetailTitle"></h2>
+      <p id="stationDetailText"></p>
+      <!-- Carousel for items; content loaded dynamically per station -->
+      <div class="carousel" id="carousel">
+        <div class="items" id="carouselItems"></div>
+        <div class="item-description" id="itemDescription"></div>
+      </div>
+    </div>
+    <div class="back-btn" id="stationBackBtn"> Back</div>
+  </div>
+
+  <!-- Bottom Bar -->
+  <div class="bottom-bar" id="bottom-bar">
+    <div>© 2025 Purple Lunchbox Productions</div>
+  </div>
+
+  <script>
+    let systemModeActive = false;
+    const toggleBtn = document.getElementById('toggleButton');
+    const dimscreen = document.getElementById('dimscreen');
+    const sidebar = document.getElementById('sidebar');
+    const themeToggle = document.getElementById('themeToggle');
+    const systemToggleBtn = document.getElementById('systemToggle');
+    const headbarEl = document.getElementById('headbar');
+    const bottomBarEl = document.getElementById('bottom-bar');
+    const heroSection = document.getElementById('heroSection');
+    const heroTitle = document.querySelector('.hero-section h1');
+    const defaultHeroBg = "url('assets/images/battlepass-hero.jpg')";
+    let lastScrollPos = 0;
+
+    function toggleSidebar(){
+      sidebar.classList.toggle('active');
+      toggleBtn.classList.toggle('active');
+      dimscreen.classList.toggle('active');
+      if(document.body.classList.contains('light-mode')){
+        toggleBtn.querySelectorAll('div').forEach(d=>{ d.style.background='#000'; });
+      } else {
+        toggleBtn.querySelectorAll('div').forEach(d=>{ d.style.background='#fff'; });
+      }
+    }
+    function toggleTheme(){
+      if(systemModeActive)return;
+      document.body.classList.toggle('light-mode');
+      if(document.body.classList.contains('light-mode')){
+        themeToggle.textContent = ' Light Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#000');
+      } else {
+        themeToggle.textContent = ' Dark Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#fff');
+      }
+    }
+    function toggleSystemTheme(){
+      systemModeActive = !systemModeActive;
+      if(systemModeActive){
+        systemToggleBtn.classList.add('active');
+        systemToggleBtn.textContent = 'System On';
+        themeToggle.style.opacity = '0.5';
+        themeToggle.style.pointerEvents = 'none';
+        handleSystemTheme();
+      } else {
+        systemToggleBtn.classList.remove('active');
+        systemToggleBtn.textContent = 'System Off';
+        themeToggle.style.opacity = '1';
+        themeToggle.style.pointerEvents = 'auto';
+      }
+    }
+    function handleSystemTheme(){
+      if(!systemModeActive)return;
+      let mq = window.matchMedia('(prefers-color-scheme: dark)');
+      setAutoTheme(mq.matches);
+      mq.onchange = e=>{ if(systemModeActive){ setAutoTheme(e.matches); } };
+    }
+    function setAutoTheme(isDark){
+      if(isDark){
+        document.body.classList.remove('light-mode');
+        themeToggle.textContent = 'System:  Dark Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#fff');
+      } else {
+        document.body.classList.add('light-mode');
+        themeToggle.textContent = 'System:  Light Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#000');
+      }
+    }
+
+    window.onscroll = function(){
+      handleHeadbar();
+      handleBottomBar();
+    };
+    function handleHeadbar(){
+      const heroRect = heroSection.getBoundingClientRect();
+      if(heroRect.bottom <= 0){
+        headbarEl.classList.add('show');
+      } else {
+        headbarEl.classList.remove('show');
+      }
+    }
+    function handleBottomBar(){
+      const docHeight = document.documentElement.scrollHeight;
+      const winHeight = window.innerHeight;
+      const scrolled = window.scrollY + winHeight;
+      if(scrolled >= docHeight){
+        bottomBarEl.classList.add('show');
+      } else {
+        bottomBarEl.classList.remove('show');
+      }
+    }
+
+    /* Station Items Data: Each station (D01-D08) gets its own array of items */
+    const stationItems = {
+      D01: [
+        { src: "assets/images/battlepass-d01-item1.jpg", desc: "D01 Item 1 description" },
+        { src: "assets/images/battlepass-d01-item2.jpg", desc: "D01 Item 2 description" },
+        { src: "assets/images/battlepass-d01-item3.jpg", desc: "D01 Item 3 description" }
+      ],
+      D02: [
+        { src: "assets/images/battlepass-d02-item1.jpg", desc: "D02 Item 1 description" },
+        { src: "assets/images/battlepass-d02-item2.jpg", desc: "D02 Item 2 description" },
+        { src: "assets/images/battlepass-d02-item3.jpg", desc: "D02 Item 3 description" }
+      ],
+      D03: [
+        { src: "assets/images/battlepass-d03-item1.jpg", desc: "D03 Item 1 description" },
+        { src: "assets/images/battlepass-d03-item2.jpg", desc: "D03 Item 2 description" },
+        { src: "assets/images/battlepass-d03-item3.jpg", desc: "D03 Item 3 description" }
+      ],
+      D04: [
+        { src: "assets/images/battlepass-d04-item1.jpg", desc: "D04 Item 1 description" },
+        { src: "assets/images/battlepass-d04-item2.jpg", desc: "D04 Item 2 description" },
+        { src: "assets/images/battlepass-d04-item3.jpg", desc: "D04 Item 3 description" }
+      ],
+      D05: [
+        { src: "assets/images/battlepass-d05-item1.jpg", desc: "D05 Item 1 description" },
+        { src: "assets/images/battlepass-d05-item2.jpg", desc: "D05 Item 2 description" },
+        { src: "assets/images/battlepass-d05-item3.jpg", desc: "D05 Item 3 description" }
+      ],
+      D06: [
+        { src: "assets/images/battlepass-d06-item1.jpg", desc: "D06 Item 1 description" },
+        { src: "assets/images/battlepass-d06-item2.jpg", desc: "D06 Item 2 description" },
+        { src: "assets/images/battlepass-d06-item3.jpg", desc: "D06 Item 3 description" }
+      ],
+      D07: [
+        { src: "assets/images/battlepass-d07-item1.jpg", desc: "D07 Item 1 description" },
+        { src: "assets/images/battlepass-d07-item2.jpg", desc: "D07 Item 2 description" },
+        { src: "assets/images/battlepass-d07-item3.jpg", desc: "D07 Item 3 description" }
+      ],
+      D08: [
+        { src: "assets/images/battlepass-d08-item1.jpg", desc: "D08 Item 1 description" },
+        { src: "assets/images/battlepass-d08-item2.jpg", desc: "D08 Item 2 description" },
+        { src: "assets/images/battlepass-d08-item3.jpg", desc: "D08 Item 3 description" }
+      ]
+    };
+
+    function loadCarouselItems(stationId) {
+      const items = stationItems[stationId];
+      const carouselContainer = document.getElementById("carouselItems");
+      carouselContainer.innerHTML = "";
+      items.forEach(item => {
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "item";
+        itemDiv.setAttribute("data-desc", item.desc);
+        const img = document.createElement("img");
+        img.src = item.src;
+        img.alt = "Item image";
+        itemDiv.appendChild(img);
+        carouselContainer.appendChild(itemDiv);
+        const descDiv = document.createElement("div");
+        descDiv.className = "item-description";
+        carouselContainer.appendChild(descDiv);
+      });
+    }
+
+    /* Station Click => Overlay + BG Switch with animation */
+    const stations = document.querySelectorAll('.station');
+    const stationDetails = document.getElementById('stationDetails');
+    const stationDetailTitle = document.getElementById('stationDetailTitle');
+    const stationDetailText = document.getElementById('stationDetailText');
+    const stationBackBtn = document.getElementById('stationBackBtn');
+
+    stations.forEach(station => {
+      station.addEventListener('click', ()=>{
+        lastScrollPos = window.scrollY;
+        const stationID = station.getAttribute('data-station');
+        const title = station.getAttribute('data-title');
+        const fullDesc = station.getAttribute('data-full');
+        const bgUrl = station.getAttribute('data-bg');
+        stationDetailTitle.textContent = `${title} ${stationID}`;
+        stationDetailText.textContent = fullDesc;
+        stationDetails.classList.add('active');
+        heroSection.style.transition = 'background-image 1s ease-in-out';
+        heroSection.style.backgroundImage = `url('${bgUrl}')`;
+        loadCarouselItems(stationID);
+        document.getElementById('timeline').style.display = 'none';
+        document.getElementById('headbar').style.display = 'none';
+        document.getElementById('bottom-bar').style.display = 'none';
+        heroTitle.style.opacity = '0';
+      });
+    });
+    stationBackBtn.addEventListener('click', ()=>{
+      stationDetails.classList.remove('active');
+      heroSection.style.backgroundImage = defaultHeroBg;
+      document.getElementById('timeline').style.display = 'block';
+      document.getElementById('headbar').style.display = '';
+      document.getElementById('bottom-bar').style.display = '';
+      heroTitle.style.opacity = '1';
+      window.scrollTo(0, lastScrollPos);
+    });
+
+    /* Carousel */
+    let carouselInterval;
+    function startCarousel(){
+      carouselInterval = setInterval(()=>{
+        const carouselContainer = document.getElementById("carouselItems");
+        carouselContainer.scrollLeft += 1;
+        if(carouselContainer.scrollLeft >= carouselContainer.scrollWidth - carouselContainer.clientWidth){
+          carouselContainer.scrollLeft = 0;
+        }
+      }, 30);
+    }
+    function stopCarousel(){
+      clearInterval(carouselInterval);
+    }
+    document.addEventListener("click", function(e){
+      if(e.target.closest('.carousel .item')){
+        stopCarousel();
+        document.querySelectorAll('.carousel .item').forEach(i=> i.classList.remove('active'));
+        e.target.closest('.carousel .item').classList.add('active');
+        document.getElementById('itemDescription').textContent = e.target.closest('.carousel .item').getAttribute('data-desc');
+      }
+    });
+    startCarousel();
+  </script>
+</body>
+</html>

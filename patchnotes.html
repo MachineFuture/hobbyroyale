@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hobby Royale - Patch Notes</title>
+  <style>
+    @font-face {
+      font-family: 'NintendoFont';
+      src: url('https://machinefuture.github.io/fonts/nintendo_NTLGDB_001.ttf') format('truetype');
+      font-display: swap;
+    }
+    :root {
+      --sidebar-dark: #4f4684;
+      --sidebar-light: #e2e0f0;
+      --bg-dark: #5d5c64;
+      --bg-light: #f3f2f5;
+      --txt-dark: #fff;
+      --txt-light: #000;
+    }
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: 'NintendoFont', sans-serif;
+    }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--txt-dark);
+      overflow-x: hidden;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    body.light-mode {
+      background-color: var(--bg-light);
+      color: var(--txt-light);
+    }
+    
+    /* Dim overlay for sidebar */
+    .dimscreen {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background-color: rgba(0,0,0,0.5);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s;
+      z-index: 998;
+    }
+    .dimscreen.active {
+      opacity: 1; pointer-events: auto;
+    }
+    
+    /* Toggle button (5px transforms for symmetrical X) */
+    .toggle-btn {
+      position: fixed;
+      top: 1rem; left: 1rem;
+      width: 30px; height: 25px;
+      cursor: pointer;
+      z-index: 1100;
+    }
+    .toggle-btn div {
+      height: 3px;
+      background: #fff;
+      margin: 4px;
+      transition: 0.4s;
+      transform-origin: center;
+    }
+    .toggle-btn.active .bar1 {
+      transform: rotate(-45deg) translate(-5px, 5px);
+    }
+    .toggle-btn.active .bar2 {
+      opacity: 0;
+    }
+    .toggle-btn.active .bar3 {
+      transform: rotate(45deg) translate(-5px, -5px);
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0; left: -250px;
+      width: 250px; height: 100vh;
+      background-color: var(--sidebar-dark);
+      padding: 1rem;
+      transition: left 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+      z-index: 1000;
+    }
+    body.light-mode .sidebar {
+      background-color: var(--sidebar-light);
+    }
+    .sidebar.active {
+      left: 0;
+    }
+    .sidebar ul {
+      list-style: none;
+      margin-top: 2rem; padding: 0;
+    }
+    .sidebar ul li {
+      margin-bottom: 0.6rem;
+      opacity: 0; transform: translateX(-20px);
+    }
+    .sidebar.active ul li {
+      animation: appear 0.4s forwards;
+    }
+    .sidebar.active ul li:nth-child(1) { animation-delay: 0.1s; }
+    .sidebar.active ul li:nth-child(2) { animation-delay: 0.15s; }
+    .sidebar.active ul li:nth-child(3) { animation-delay: 0.2s; }
+    .sidebar.active ul li:nth-child(4) { animation-delay: 0.25s; }
+    .sidebar.active ul li:nth-child(5) { animation-delay: 0.3s; }
+    .sidebar.active ul li:nth-child(6) { animation-delay: 0.35s; }
+    .sidebar.active ul li:nth-child(7) { animation-delay: 0.4s; }
+    @keyframes appear {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .sidebar ul li a {
+      text-decoration: none;
+      font-size: 1.2rem;
+      color: inherit;
+      transition: background-color 0.3s;
+      padding: 0.2rem 0.3rem;
+      display: block;
+    }
+    .sidebar ul li a:hover {
+      background-color: rgba(255,255,255,0.3);
+    }
+    /* Highlight PATCH NOTES link & adapt to theme */
+    .sidebar ul li a.current {
+      background-color: rgba(255,255,255,0.5);
+      color: #000;
+      border-radius: 5px;
+    }
+    body.light-mode .sidebar ul li a.current {
+      background-color: rgba(0,0,0,0.3);
+      color: #fff;
+    }
+    .theme-toggle {
+      position: absolute;
+      bottom: 4.5rem; left: 1rem;
+      cursor: pointer;
+      border: 1px solid #fff;
+      padding: 0.3rem 0.5rem;
+      border-radius: 5px;
+    }
+    .system-toggle {
+      position: absolute;
+      bottom: 1rem; left: 1rem;
+      font-size: 0.9rem;
+      border: 1px dashed #fff;
+      padding: 0.3rem;
+      margin-top: 1rem;
+      transition: 0.3s; cursor: pointer;
+    }
+    .system-toggle.active {
+      border: 1px solid #fff;
+      background: rgba(255,255,255,0.2);
+    }
+    
+    /* Headbar & Bottom Bar */
+    .content-headbar {
+      position: fixed; top: -60px; left: 0;
+      width: 100%; height: 60px;
+      background-color: var(--sidebar-dark);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      transition: top 0.4s; z-index: 999;
+    }
+    body.light-mode .content-headbar {
+      background-color: var(--sidebar-light);
+      color: #000;
+    }
+    .content-headbar.show {
+      top: 0;
+    }
+    .bottom-bar {
+      position: fixed; bottom: -70px; left: 0;
+      width: 100%; height: 70px;
+      background-color: var(--sidebar-dark);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      transition: bottom 0.4s; z-index: 997;
+    }
+    body.light-mode .bottom-bar {
+      background-color: var(--sidebar-light);
+      color: #000;
+    }
+    .bottom-bar.show {
+      bottom: 0;
+    }
+    
+    /* Hero section for Patch Notes page */
+    .hero-section {
+      position: relative; width: 100%; height: 100vh;
+      background: url('assets/images/patchnotes-hero.jpg') center center/cover no-repeat fixed;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hero-section h1 {
+      font-size: 5rem; color: #fff; text-transform: uppercase;
+      background: rgba(0,0,0,0.5);
+      padding: 1rem 2rem; border-radius: 10px;
+    }
+    
+    /* Patch notes container */
+    .notes-container {
+      position: relative;
+      width: 90%; max-width: 1200px;
+      margin: 4rem auto; padding: 2rem;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+    }
+    body.light-mode .notes-container {
+      background: rgba(0,0,0,0.2);
+    }
+    
+    /* Major version row */
+    .big-version {
+      position: relative; margin-bottom: 1rem; cursor: pointer;
+      background: rgba(0,0,0,0.3);
+      border-radius: 5px; padding: 0.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: background 0.4s;
+    }
+    body.light-mode .big-version {
+      background: rgba(255,255,255,0.3);
+    }
+    .big-version:hover {
+      background: rgba(0,0,0,0.5);
+    }
+    body.light-mode .big-version:hover {
+      background: rgba(0,0,0,0.4);
+    }
+    .version-label {
+      font-size: 1.3rem; font-weight: bold;
+    }
+    .arrow {
+      font-size: 1.3rem; transition: transform 0.3s;
+    }
+    .expanded .arrow {
+      transform: rotate(180deg);
+    }
+    
+    /* SUBVERSIONS: Ensure these elements are in normal flow so they push content down */
+    .subversions {
+      overflow: hidden;
+      max-height: 0; opacity: 0;
+      transition: max-height 0.6s cubic-bezier(0.68,-0.55,0.27,1.55), opacity 0.6s ease;
+      margin-left: 1rem;
+      /* Remove any positioning overrides so they stack normally */
+      position: static;
+      display: block;
+    }
+    
+    /* Each subversion container */
+    .subversion {
+      background: rgba(0,0,0,0.2);
+      border-radius: 4px;
+      margin: 0.5rem 0; padding: 0.4rem;
+      transition: background 0.4s;
+      cursor: pointer;
+    }
+    body.light-mode .subversion {
+      background: rgba(255,255,255,0.2);
+    }
+    .subversion:hover {
+      background: rgba(0,0,0,0.4);
+    }
+    body.light-mode .subversion:hover {
+      background: rgba(0,0,0,0.3);
+    }
+    .sub-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .sub-label {
+      font-size: 1rem;
+    }
+    .sub-arrow {
+      font-size: 1.2rem; transition: transform 0.3s;
+    }
+    
+    /* SUB-DETAILS: Place inside the same subversion so it pushes content down */
+    .sub-details {
+      overflow: hidden; max-height: 0; opacity: 0;
+      margin-top: 0.3rem;
+      background: rgba(0,0,0,0.1);
+      border-radius: 5px;
+      padding: 0 0.5rem;
+      transition: max-height 0.5s cubic-bezier(0.68,-0.55,0.27,1.55), opacity 0.5s ease;
+      position: static;
+      display: block;
+    }
+    body.light-mode .sub-details {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .patch-line {
+      margin: 0.5rem 0; font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Toggle Button & Dim Overlay -->
+  <div class="toggle-btn" id="toggleButton" onclick="toggleSidebar()">
+    <div class="bar1"></div>
+    <div class="bar2"></div>
+    <div class="bar3"></div>
+  </div>
+  <div class="dimscreen" id="dimscreen"></div>
+  
+  <!-- Sidebar with PATCH NOTES highlighted -->
+  <nav class="sidebar" id="sidebar">
+    <ul style="margin-top:2rem; margin-bottom:1rem;">
+      <li><a href="index.html"> HOME</a></li>
+      <li><a href="battlepass.html"> BATTLE PASS</a></li>
+      <li><a href="map.html"> MAP</a></li>
+      <li><a href="gamemodes.html"> GAME MODES</a></li>
+      <li><a href="community.html"> COMMUNITY</a></li>
+      <li><a href="patchnotes.html" class="current"> PATCH NOTES</a></li>
+      <li><a href="about.html"> ABOUT</a></li>
+    </ul>
+    <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()"> Dark Mode</div>
+    <div class="system-toggle" id="systemToggle" onclick="toggleSystemTheme()">System Off</div>
+  </nav>
+  
+  <!-- Headbar -->
+  <div class="content-headbar" id="headbar"><span>Patch Notes</span></div>
+  
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <h1>PATCH NOTES</h1>
+  </section>
+  
+  <!-- Main container for patch notes -->
+  <!-- Begin: Notes Container -->
+  <section class="notes-container" id="notesContainer">
+
+    <!-- Big versions + subversions below. 
+         Full placeholders from 8 down to 1, each with 4 subversions. 
+         For brevity, only a couple are shown here; but the snippet includes them all. -->
+
+    <!-- (No lines removed from prior snippet, just lightly updated for JS approach) -->
+<!-- Begin Patch Notes Content Snippet (Descending Order) -->
+
+<!-- Version 8 -->
+<div class="big-version" data-version="8">
+  <div class="version-label">Ver. 8 - The OG Returns</div>
+  <div class="arrow">﹀</div>
+</div>
+<div class="subversions" data-versionlist="8">
+  <!-- Subversion 8.3.0 -->
+  <div class="subversion" data-subversion="8.3.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 8.3.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Improved weather effects on the 2017 Japan map;</div>
+      <div class="patch-line">Railway Enthusiasts now have a "Timetable Mastery" passive, increasing train accuracy buffs;</div>
+      <div class="patch-line">Fixed a rare issue where players would get lost in Katsuta Station and never find their way out.</div>
+    </div>
+  </div>
+  <!-- Subversion 8.2.0 -->
+  <div class="subversion" data-subversion="8.2.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 8.2.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Trains now delay realistically (this is called immersion);</div>
+      <div class="patch-line">Buffs for hobby classes have been adjusted because some of you were getting way too overpowered in Memory Sync zones;</div>
+      <div class="patch-line">Fixed a bug where leaderboard stats would rather die than update properly.</div>
+    </div>
+  </div>
+  <!-- Subversion 8.1.0 -->
+  <div class="subversion" data-subversion="8.1.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 8.1.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Fixed an exploit where players could manipulate train speeds like they were running a high-speed rail empire;</div>
+      <div class="patch-line">Leaderboard rankings have been tweaked so no single hobby class dominates the competition (yes, Train Otakus, we saw you);</div>
+      <div class="patch-line">Rendering optimizations should prevent your screen from turning into a pixelated mess at Katsuta Station;</div>
+      <div class="patch-line">Rodin Typeface weapon nerfed—turns out breaking the UI isn’t a “gameplay feature.”</div>
+    </div>
+  </div>
+  <!-- Subversion 8.0.0 -->
+  <div class="subversion" data-subversion="8.0.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 8.0.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">The original 2017 Japan Lore map has returned, and let’s be honest—it’s about time.</div>
+      <div class="patch-line">Katsuta Station, Life Inn Katsuta, and Hitachinaka Cultural Center have all been remastered, meaning you can now properly relive your nostalgia trip in full HD.</div>
+      <div class="patch-line">Memory Sync has been optimized, so you no longer feel like you’re playing on dial-up internet while transitioning between past and present.</div>
+      <div class="patch-line">Train schedules now run as accurately as real life, which means you might experience occasional "unexpected delays." (Hey, realism.)</div>
+      <div class="patch-line">New hobby class: Railway Enthusiast (Train Otaku). Congrats, you can now quote every train schedule from memory and gain buffs for traveling by rail.</div>
+      <div class="patch-line">GameCube builds now have +15% durability in Japan maps.</div>
+      <div class="patch-line">Roller coaster enthusiasts have received a speed boost, but don’t get too cocky—we made sure physics still applies.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Version 7 -->
+<div class="big-version" data-version="7">
+  <div class="version-label">Ver. 7 - Welcome to the Nintendo Land</div>
+  <div class="arrow">﹀</div>
+</div>
+<div class="subversions" data-versionlist="7">
+  <!-- Subversion 7.3.0 -->
+  <div class="subversion" data-subversion="7.3.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 7.3.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Added "Launch Titles Collector" achievement for collecting 5+ Nintendo consoles in-game;</div>
+      <div class="patch-line">Fixed an issue where GameCube players got stuck in Dolphin Mode permanently (cool in theory, bad in execution);</div>
+      <div class="patch-line">Adjusted lighting in the Wii U Memorial to make it <em>even sadder.</em></div>
+    </div>
+  </div>
+  <!-- Subversion 7.2.0 -->
+  <div class="subversion" data-subversion="7.2.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 7.2.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Legacy hardware buffs have been restored, but don’t expect us to support everything (looking at you, Virtual Boy users);</div>
+      <div class="patch-line">Rodin Typeface exploit patched—no more kicking players from the lobby with your font choices;</div>
+      <div class="patch-line">Virtual Boy Dimension now flickers <em>only</em> when intended.</div>
+    </div>
+  </div>
+  <!-- Subversion 7.1.0 -->
+  <div class="subversion" data-subversion="7.1.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 7.1.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Fixed an issue where Wii U players were ignored in matchmaking (tragically accurate);</div>
+      <div class="patch-line">Input lag for GameCube controllers has been optimized, meaning you can now blame your losses on something else;</div>
+      <div class="patch-line">PlayStation users nerfed for unintended speedrun advantages;</div>
+      <div class="patch-line">Nintendo-exclusive players have had their movement buffs slightly increased for maximum fanboyism.</div>
+    </div>
+  </div>
+  <!-- Subversion 7.0.0 -->
+  <div class="subversion" data-subversion="7.0.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 7.0.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">New map: Nintendo Museum.</div>
+      <div class="patch-line">Relive gaming history by walking through every console Nintendo has ever made. Secret rooms include the GameCube Shrine (blessed), Wii U Memorial (gone too soon), and Virtual Boy’s Dimension (we don’t talk about this one).</div>
+      <div class="patch-line">New hobby classes: Collector and Console Gamer.</div>
+      <div class="patch-line">Console Collectors get buffs when hoarding legacy hardware, and their special ability, Dolphin Mode, temporarily boosts performance of all Nintendo-based builds.</div>
+      <div class="patch-line">New weapon: Wii Remote + Nunchuk. High-damage melee combo, but there’s a 20% chance it desyncs mid-swing—just like in real life.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Version 6 -->
+<div class="big-version" data-version="6">
+  <div class="version-label">Ver. 6 - The Thriller Update</div>
+  <div class="arrow">﹀</div>
+</div>
+<div class="subversions" data-versionlist="6">
+  <!-- Subversion 6.3.0 -->
+  <div class="subversion" data-subversion="6.3.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 6.3.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Added a new "Fast Pass" mechanic—players who queue properly get speed buffs;</div>
+      <div class="patch-line">Fixed an exploit where players could bypass ride safety checks and fly off the track;</div>
+      <div class="patch-line">Balanced motion sickness effects—no more getting permanently dizzy after riding one coaster.</div>
+    </div>
+  </div>
+  <!-- Subversion 6.2.0 -->
+  <div class="subversion" data-subversion="6.2.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 6.2.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Coaster physics have been improved;</div>
+      <div class="patch-line">Resolved an issue where respawns at coaster stations left players in permanent ghost mode;</div>
+      <div class="patch-line">Millennium Force structures now properly withstand abuse from coaster fanatics.</div>
+    </div>
+  </div>
+  <!-- Subversion 6.1.0 -->
+  <div class="subversion" data-subversion="6.1.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 6.1.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Fixed a bug where getting stuck in ride restraints turned players into involuntary test dummies;</div>
+      <div class="patch-line">Leaderboard rankings now properly account for coaster-based challenges (sorry speedrunners, you actually have to ride the rides now);</div>
+      <div class="patch-line">Speed buffs for Enthusiasts nerfed slightly—no more hitting Mach 3 on a Ferris wheel.</div>
+    </div>
+  </div>
+  <!-- Subversion 6.0.0 -->
+  <div class="subversion" data-subversion="6.0.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 6.0.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">New map: Cedar Point Theme Park.</div>
+      <div class="patch-line">Yes, the rides work.</div>
+      <div class="patch-line">Yes, you can launch people off Millennium Force.</div>
+      <div class="patch-line">New hobby classes: Coaster Enthusiast and Coaster Thoosie. Enthusiasts get speed boosts on inclined surfaces, while Thoosies gain additional excitement-based buffs (but risk motion sickness debuffs).</div>
+      <div class="patch-line">New weapon: The Lap Bar—locks enemies into position for a solid 120-second ride cycle.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Version 5 -->
+<div class="big-version" data-version="5">
+  <div class="version-label">Ver. 5 - Better Living in the Digital World</div>
+  <div class="arrow">﹀</div>
+</div>
+<div class="subversions" data-versionlist="5">
+  <!-- Subversion 5.3.0 -->
+  <div class="subversion" data-subversion="5.3.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 5.3.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Players who experience 3+ crashes in one match now receive a free "Tech Support" buff;</div>
+      <div class="patch-line">New achievement: "Blue Screen Warrior" for surviving an entire match without crashing;</div>
+      <div class="patch-line">Fixed an issue where players could install Windows XP mid-match for an unintended performance boost.</div>
+    </div>
+  </div>
+  <!-- Subversion 5.2.0 -->
+  <div class="subversion" data-subversion="5.2.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 5.2.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Error message exploits patched (nice try);</div>
+      <div class="patch-line">Task Manager ability no longer resets infinitely, so you can’t force-quit reality itself;</div>
+      <div class="patch-line">Fixed a memory leak that turned Windows Me Desktop into a literal slideshow.</div>
+    </div>
+  </div>
+  <!-- Subversion 5.1.0 -->
+  <div class="subversion" data-subversion="5.1.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 5.1.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">System crashes reduced (but not eliminated—Windows Me demands sacrifices);</div>
+      <div class="patch-line">UI performance improved so navigating menus doesn’t feel like wading through wet cement;</div>
+      <div class="patch-line">Legacy software relics are now easier to find, assuming they don’t corrupt upon pickup.</div>
+    </div>
+  </div>
+  <!-- Subversion 5.0.0 -->
+  <div class="subversion" data-subversion="5.0.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 5.0.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">New map: Windows Me Desktop. Every action now carries a small but terrifying chance of crashing your entire session.</div>
+      <div class="patch-line">New hobby classes: Archivist and PC Enthusiast.</div>
+      <div class="patch-line">Archivists gain buffs when interacting with legacy software, while PC Enthusiasts can optimize computer performance (or make it worse).</div>
+      <div class="patch-line">New weapon: Debug Console. Use at your own risk—it can either solve all your problems or completely brick your match.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Version 4 -->
+<div class="big-version" data-version="4">
+  <div class="version-label">Ver. 4 - The Minecraft Update</div>
+  <div class="arrow">﹀</div>
+</div>
+<div class="subversions" data-versionlist="4">
+  <!-- Subversion 4.3.0 -->
+  <div class="subversion" data-subversion="4.3.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 4.3.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Creative Builders now get unlimited building materials in select zones;</div>
+      <div class="patch-line">Fixed an issue where placing TNT too fast caused <em>actual</em> explosions;</div>
+      <div class="patch-line">Leaderboard now tracks "Most Blocks Placed" and "Most Structures Griefed."</div>
+    </div>
+  </div>
+  <!-- Subversion 4.2.0 -->
+  <div class="subversion" data-subversion="4.2.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 4.2.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Crafting menu optimized;</div>
+      <div class="patch-line">Block textures fixed (no more disappearing floors);</div>
+      <div class="patch-line">Exploit where Redstone Engineers could crash servers patched (but we respect the effort).</div>
+    </div>
+  </div>
+  <!-- Subversion 4.1.0 -->
+  <div class="subversion" data-subversion="4.1.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 4.1.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">World loading speeds improved—no more falling into the void while chunks load;</div>
+      <div class="patch-line">Redstone circuits now work properly, so stop spamming bug reports;</div>
+      <div class="patch-line">Economy reworked to prevent players from hoarding all the diamonds.</div>
+    </div>
+  </div>
+  <!-- Subversion 4.0.0 -->
+  <div class="subversion" data-subversion="4.0.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 4.0.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">New map: Survival Multiplayer Server.</div>
+      <div class="patch-line">Everything is destructible, and yes, griefing is a thing.</div>
+      <div class="patch-line">New hobby classes: Survivalist, Creative Builder, Redstone Engineer, and Command Block Master.</div>
+      <div class="patch-line">New weapon: Diamond Pickaxe. High durability, and can now break enemy defenses (or friendships).</div>
+    </div>
+  </div>
+</div>
+
+<!-- Version 3 -->
+<div class="big-version" data-version="3">
+  <div class="version-label">Ver. 3 - Crush and Smash</div>
+  <div class="arrow">﹀</div>
+</div>
+<div class="subversions" data-versionlist="3">
+  <!-- Subversion 3.3.0 -->
+  <div class="subversion" data-subversion="3.3.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 3.3.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Added "Factory Overclock" ability—Engineers can now temporarily boost their mech’s speed and firepower at the cost of overheating;</div>
+      <div class="patch-line">Fixed an exploit where players could swap mech parts mid-fight for an instant repair;</div>
+      <div class="patch-line">Improved mech destruction physics—explosions now look as satisfying as they feel.</div>
+    </div>
+  </div>
+  <!-- Subversion 3.2.0 -->
+  <div class="subversion" data-subversion="3.2.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 3.2.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Ranked mech battles now match players more accurately—no more getting matched against pro engineers while you're still figuring out how wheels work;</div>
+      <div class="patch-line">Resolved an issue where some mechs gained invincibility (you know who you are);</div>
+      <div class="patch-line">Combat animations are now actually smooth instead of looking like a 5 FPS slideshow;</div>
+      <div class="patch-line">Balanced fuel consumption mechanics to prevent mechs from running forever.</div>
+    </div>
+  </div>
+  <!-- Subversion 3.1.0 -->
+  <div class="subversion" data-subversion="3.1.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 3.1.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Mech durability rebalanced to prevent immortality glitches;</div>
+      <div class="patch-line">Collision detection actually works now—no more phasing through walls like a ghost mech;</div>
+      <div class="patch-line">UI responsiveness improved because navigating mech loadouts shouldn’t feel like solving a Rubik’s Cube;</div>
+      <div class="patch-line">Fixed an exploit where players could attach infinite armor plating and become walking fortresses.</div>
+    </div>
+  </div>
+  <!-- Subversion 3.0.0 -->
+  <div class="subversion" data-subversion="3.0.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 3.0.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">New map: Astracraft Battle Arena.</div>
+      <div class="patch-line">Fully customizable mechs are now a thing.</div>
+      <div class="patch-line">New hobby class: Engineer. You build it, you break it, you win.</div>
+      <div class="patch-line">New weapon: Plasma Cutter—high damage against mechs, useless against literally anything else.</div>
+      <div class="patch-line">Players can now design, assemble, and battle with fully modular combat mechs.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Version 2 -->
+<div class="big-version" data-version="2">
+  <div class="version-label">Ver. 2 - Code to Victory</div>
+  <div class="arrow">﹀</div>
+</div>
+<div class="subversions" data-versionlist="2">
+  <!-- Subversion 2.3.0 -->
+  <div class="subversion" data-subversion="2.3.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 2.3.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">New shortcut-based abilities added—Coders can now create fully custom skill sequences;</div>
+      <div class="patch-line">Fixed a bug where the game UI would disappear completely if too many shortcuts were triggered at once;</div>
+      <div class="patch-line">Adjusted leaderboard filters to highlight the most creative automation builds instead of just speed spam.</div>
+    </div>
+  </div>
+  <!-- Subversion 2.2.0 -->
+  <div class="subversion" data-subversion="2.2.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 2.2.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Shortcut compatibility fixed—Android users, you can stop complaining now;</div>
+      <div class="patch-line">UI readability improved for less eyestrain—text now actually fits on the screen instead of stretching into oblivion;</div>
+      <div class="patch-line">App Locker no longer bricks your entire device—though we won’t judge if you still use it on your enemies.</div>
+    </div>
+  </div>
+  <!-- Subversion 2.1.0 -->
+  <div class="subversion" data-subversion="2.1.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 2.1.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Shortcut execution speed doubled—your automations no longer take longer to run than doing it manually;</div>
+      <div class="patch-line">Automation loops fixed (you can no longer accidentally soft-lock yourself in an infinite shortcut);</div>
+      <div class="patch-line">Leaderboard rankings adjusted to favor efficiency over spam—no more winning just because you programmed a macro to click faster than humanly possible.</div>
+    </div>
+  </div>
+  <!-- Subversion 2.0.0 -->
+  <div class="subversion" data-subversion="2.0.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 2.0.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">New hobby class: Coder. Congratulations, you now get rewarded for overcomplicating simple tasks.</div>
+      <div class="patch-line">New weapon: App Locker—locks enemy abilities, but can backfire and lock your own.</div>
+      <div class="patch-line">Memory Sync now transitions smoother (or at least doesn’t crash <em>as</em> often).</div>
+      <div class="patch-line">iOS Shortcuts are now fully implemented, meaning you can automate your own abilities.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Version 1 -->
+<div class="big-version" data-version="1">
+  <div class="version-label">Ver. 1 - Welcome hobbyists</div>
+  <div class="arrow">﹀</div>
+</div>
+<div class="subversions" data-versionlist="1">
+  <!-- Subversion 1.3.0 -->
+  <div class="subversion" data-subversion="1.3.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 1.3.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">New intro sequence added—players now experience a full backstory before entering the 2017 map;</div>
+      <div class="patch-line">Fixed an issue where some players would get stuck in an endless loop of nostalgia and refuse to progress;</div>
+      <div class="patch-line">Added an in-game journal system—now you can track your hobby history and achievements in one place.</div>
+    </div>
+  </div>
+  <!-- Subversion 1.2.0 -->
+  <div class="subversion" data-subversion="1.2.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 1.2.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Memory Sync transitions optimized—no more sudden black screens between reality shifts;</div>
+      <div class="patch-line">Leaderboard now recognizes niche achievements, so even weird hobbies get a chance to shine;</div>
+      <div class="patch-line">Various text localization issues resolved (no more mystery kanji).</div>
+    </div>
+  </div>
+  <!-- Subversion 1.1.0 -->
+  <div class="subversion" data-subversion="1.1.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 1.1.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Train schedules now sync properly—no more teleporting between stations due to lag;</div>
+      <div class="patch-line">Hobby class abilities balanced to prevent one-man armies;</div>
+      <div class="patch-line">Map fidelity increased so things actually look like Japan instead of a vague collection of polygons.</div>
+    </div>
+  </div>
+  <!-- Subversion 1.0.0 -->
+  <div class="subversion" data-subversion="1.0.0">
+    <div class="sub-header">
+      <div class="sub-label">Ver. 1.0.0</div>
+      <div class="sub-arrow">﹀</div>
+    </div>
+    <div class="sub-details">
+      <div class="patch-line">Welcome to Hobby Royale.</div>
+      <div class="patch-line">Memory Sync is now active, bringing the first playable map: Japan 2017. Explore Katsuta Station, Life Inn Katsuta, and Hitachinaka Cultural Center.</div>
+      <div class="patch-line">Hobby classes: Gamer, Artist, Tech Enthusiast.</div>
+      <div class="patch-line">Gamers get digital buffs, Artists get creativity bonuses, and Tech Enthusiasts get to mess with in-game mechanics.</div>
+      <div class="patch-line">Basic gameplay mechanics have been introduced, including combat, skill progression, and Memory Sync transitions.</div>
+    </div>
+  </div>
+</div>
+  <!-- End Patch Notes Content Snippet -->
+  </section>
+  
+  <!-- Bottom Bar -->
+  <div class="bottom-bar" id="bottom-bar">
+    <div>© 2025 Purple Lunchbox Productions</div>
+  </div>
+  
+  <script>
+    let systemModeActive = false;
+    const toggleBtn = document.getElementById('toggleButton');
+    const dimscreen = document.getElementById('dimscreen');
+    const sidebar = document.getElementById('sidebar');
+    const themeToggle = document.getElementById('themeToggle');
+    const systemToggleBtn = document.getElementById('systemToggle');
+    const headbarEl = document.getElementById('headbar');
+    const bottomBarEl = document.getElementById('bottom-bar');
+
+    function toggleSidebar(){
+      sidebar.classList.toggle('active');
+      toggleBtn.classList.toggle('active');
+      dimscreen.classList.toggle('active');
+      if(document.body.classList.contains('light-mode')){
+        toggleBtn.querySelectorAll('div').forEach(d=>{ d.style.background='#000'; });
+      } else {
+        toggleBtn.querySelectorAll('div').forEach(d=>{ d.style.background='#fff'; });
+      }
+    }
+    function toggleTheme(){
+      if(systemModeActive) return;
+      document.body.classList.toggle('light-mode');
+      if(document.body.classList.contains('light-mode')){
+        themeToggle.textContent = ' Light Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#000');
+      } else {
+        themeToggle.textContent = ' Dark Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#fff');
+      }
+    }
+    function toggleSystemTheme(){
+      systemModeActive = !systemModeActive;
+      if(systemModeActive){
+        systemToggleBtn.classList.add('active');
+        systemToggleBtn.textContent = 'System On';
+        themeToggle.style.opacity = '0.5';
+        themeToggle.style.pointerEvents = 'none';
+        handleSystemTheme();
+      } else {
+        systemToggleBtn.classList.remove('active');
+        systemToggleBtn.textContent = 'System Off';
+        themeToggle.style.opacity = '1';
+        themeToggle.style.pointerEvents = 'auto';
+      }
+    }
+    function handleSystemTheme(){
+      if(!systemModeActive)return;
+      let mq = window.matchMedia('(prefers-color-scheme: dark)');
+      setAutoTheme(mq.matches);
+      mq.onchange = e=>{ if(systemModeActive){ setAutoTheme(e.matches); } };
+    }
+    function setAutoTheme(isDark){
+      if(isDark){
+        document.body.classList.remove('light-mode');
+        themeToggle.textContent = 'System:  Dark Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#fff');
+      } else {
+        document.body.classList.add('light-mode');
+        themeToggle.textContent = 'System:  Light Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#000');
+      }
+    }
+
+    window.onscroll = function(){
+      handleHeadbar();
+      handleBottomBar();
+    };
+    function handleHeadbar(){
+      const heroRect = document.querySelector('.hero-section').getBoundingClientRect();
+      if(heroRect.bottom <= 0){
+        headbarEl.classList.add('show');
+      } else {
+        headbarEl.classList.remove('show');
+      }
+    }
+    function handleBottomBar(){
+      const docHeight = document.documentElement.scrollHeight;
+      const winHeight = window.innerHeight;
+      const scrolled = window.scrollY + winHeight;
+      if(scrolled >= docHeight){
+        bottomBarEl.classList.add('show');
+      } else {
+        bottomBarEl.classList.remove('show');
+      }
+    }
+
+    /* (NEW) Helper functions for dynamic smooth expand/collapse */
+    function smoothExpand(elem) {
+      // Remove any previously set max-height if 'none'
+      if(elem.style.maxHeight === "none") {
+        elem.style.maxHeight = elem.scrollHeight + "px";
+      } else {
+        elem.style.maxHeight = elem.scrollHeight + "px";
+      }
+      elem.style.opacity = "1";
+      // After transition, remove maxHeight so it adapts naturally
+      elem.addEventListener('transitionend', function handler(e) {
+        if(e.propertyName === "max-height") {
+          elem.style.maxHeight = "none";
+          elem.removeEventListener('transitionend', handler);
+        }
+      });
+    }
+    function smoothCollapse(elem) {
+      // If expanded (maxHeight is "none"), set it to current height first
+      if(elem.style.maxHeight === "none") {
+        elem.style.maxHeight = elem.scrollHeight + "px";
+        // Force reflow
+        elem.offsetHeight;
+      }
+      elem.style.maxHeight = "0";
+      elem.style.opacity = "0";
+    }
+    
+    /* Expand/collapse major version => subversions */
+    const bigVersions = document.querySelectorAll('.big-version');
+    bigVersions.forEach(bv => {
+      bv.addEventListener('click', () => {
+        bv.classList.toggle('expanded');
+        const subContainer = bv.nextElementSibling; // .subversions
+        if(subContainer && subContainer.classList.contains('subversions')){
+          if(bv.classList.contains('expanded')){
+            smoothExpand(subContainer);
+          } else {
+            smoothCollapse(subContainer);
+          }
+        }
+      });
+    });
+    
+    /* Expand/collapse subversion => patch details in same container */
+    const subversions = document.querySelectorAll('.subversion');
+    subversions.forEach(sub => {
+      sub.addEventListener('click', e => {
+        // Prevent event bubbling to parent major version
+        e.stopPropagation();
+        sub.classList.toggle('sub-expanded');
+        const details = sub.querySelector('.sub-details');
+        if(details){
+          if(sub.classList.contains('sub-expanded')){
+            smoothExpand(details);
+          } else {
+            smoothCollapse(details);
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hobby Royale - Game Modes</title>
+  <style>
+    /* FONT AND ROOT VARIABLES */
+    @font-face {
+      font-family: 'NintendoFont';
+      src: url('https://machinefuture.github.io/fonts/nintendo_NTLGDB_001.ttf') format('truetype');
+      font-display: swap;
+    }
+    :root {
+      --sidebar-dark: #4f4684;
+      --sidebar-light: #e2e0f0;
+      --bg-dark: #5d5c64;
+      --bg-light: #f3f2f5;
+      --txt-dark: #fff;
+      --txt-light: #000;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'NintendoFont', sans-serif;
+    }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--txt-dark);
+      overflow-x: hidden;
+      transition: background-color 0.3s, color 0.3s;
+      padding-bottom: 100px; /* EXTRA: to prevent bottom bar covering content */
+    }
+    body.light-mode {
+      background-color: var(--bg-light);
+      color: var(--txt-light);
+    }
+    
+    /* DIM OVERLAY – bumped to 3000 */
+    .dimscreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background-color: rgba(0,0,0,0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s;
+      z-index: 3000;
+    }
+    .dimscreen.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    /* TOGGLE BUTTON – bumped to 3100 */
+    .toggle-btn {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      width: 30px;
+      height: 25px;
+      cursor: pointer;
+      z-index: 3100;  /* NEW: increased to 3100 */
+    }
+    .toggle-btn div {
+      height: 3px;
+      background: #fff;
+      margin: 4px;
+      transition: 0.4s;
+      transform-origin: center;
+    }
+    .toggle-btn.active .bar1 {
+      transform: rotate(-45deg) translate(-5px, 5px);
+    }
+    .toggle-btn.active .bar2 {
+      opacity: 0;
+    }
+    .toggle-btn.active .bar3 {
+      transform: rotate(45deg) translate(-5px, -5px);
+    }
+    /* SIDEBAR – bumped to 3000 */
+    .sidebar {
+      position: fixed;
+      top: 0; left: -250px;
+      width: 250px; height: 100vh;
+      background-color: var(--sidebar-dark);
+      padding: 1rem;
+      transition: left 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+      z-index: 3000;
+    }
+    body.light-mode .sidebar {
+      background-color: var(--sidebar-light);
+    }
+    .sidebar.active {
+      left: 0;
+    }
+    .sidebar ul {
+      list-style: none;
+      margin-top: 2rem;
+      padding: 0;
+    }
+    .sidebar ul li {
+      margin-bottom: 0.6rem;
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    .sidebar.active ul li {
+      animation: appear 0.4s forwards;
+    }
+    .sidebar.active ul li:nth-child(1) { animation-delay: 0.1s; }
+    .sidebar.active ul li:nth-child(2) { animation-delay: 0.15s; }
+    .sidebar.active ul li:nth-child(3) { animation-delay: 0.2s; }
+    .sidebar.active ul li:nth-child(4) { animation-delay: 0.25s; }
+    .sidebar.active ul li:nth-child(5) { animation-delay: 0.3s; }
+    .sidebar.active ul li:nth-child(6) { animation-delay: 0.35s; }
+    .sidebar.active ul li:nth-child(7) { animation-delay: 0.4s; }
+    @keyframes appear {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .sidebar ul li a {
+      text-decoration: none;
+      font-size: 1.2rem;
+      color: inherit;
+      transition: background-color 0.3s;
+      padding: 0.2rem 0.3rem;
+      display: block;
+    }
+    .sidebar ul li a:hover {
+      background-color: rgba(255,255,255,0.3);
+    }
+    .sidebar ul li a.current {
+      background-color: rgba(255,255,255,0.5);
+      color: #000;
+      border-radius: 5px;
+    }
+    body.light-mode .sidebar ul li a.current {
+      background-color: rgba(0,0,0,0.3);
+      color: #fff;
+    }
+    .theme-toggle {
+      position: absolute;
+      bottom: 4.5rem;
+      left: 1rem;
+      cursor: pointer;
+      border: 1px solid #fff;
+      padding: 0.3rem 0.5rem;
+      border-radius: 5px;
+      z-index: 3000;
+    }
+    .system-toggle {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      font-size: 0.9rem;
+      border: 1px dashed #fff;
+      padding: 0.3rem;
+      margin-top: 1rem;
+      transition: 0.3s;
+      cursor: pointer;
+      z-index: 3000;
+    }
+    .system-toggle.active {
+      border: 1px solid #fff;
+      background: rgba(255,255,255,0.2);
+    }
+    /* HEADBAR & BOTTOM BAR */
+    .content-headbar {
+      position: fixed;
+      top: -60px;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background-color: var(--sidebar-dark);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: top 0.4s;
+      z-index: 1900;
+    }
+    body.light-mode .content-headbar {
+      background-color: var(--sidebar-light);
+      color: #000;
+    }
+    .content-headbar.show {
+      top: 0;
+    }
+    .bottom-bar {
+      position: fixed;
+      bottom: -70px;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      background-color: var(--sidebar-dark);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: bottom 0.4s;
+      z-index: 1900;
+    }
+    body.light-mode .bottom-bar {
+      background-color: var(--sidebar-light);
+      color: #000;
+    }
+    .bottom-bar.show {
+      bottom: 0;
+    }
+
+    /* HERO SECTION – EXACTLY LIKE PATCHNOTES */
+    .hero-section {
+      position: relative; 
+      width: 100%; 
+      height: 100vh;
+      background: url('assets/images/gamemodes-hero.png') center center/cover no-repeat fixed;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+    }
+    .hero-section h1 {
+      font-size: 5rem; 
+      color: #fff; 
+      text-transform: uppercase;
+      background: rgba(0,0,0,0.5);
+      padding: 1rem 2rem; 
+      border-radius: 10px;
+    }
+
+    /* NEW: Title above mode tabs */
+    .mode-selection-title {
+      text-align: center;
+      font-size: 1.5rem;
+      margin: 1rem auto;
+      font-weight: bold;
+    }
+
+    /* MAIN MODES SECTION */
+    .modes-container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 2rem auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .mode-block {
+      width: 100%;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      min-height: 300px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 5px;
+      transition: background-size 0.4s;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 1rem;
+    }
+    .mode-block:hover {
+      background-size: cover;
+    }
+    .mode-info {
+      background: rgba(0,0,0,0.4);
+      padding: 1rem;
+      border-radius: 5px;
+      color: #fff;
+    }
+    body.light-mode .mode-info {
+      background: rgba(0,0,0,0.5); /* darker in light mode */
+      color: #fff;
+    }
+    .mode-title {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    .mode-subtitle {
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    /* FULLSCREEN OVERLAY FOR MODE DETAILS */
+    .mode-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      pointer-events: none;
+      z-index: 2100;
+      opacity: 0;
+      transform: scale(0.8) translateY(50px);
+    }
+    .mode-overlay.active {
+      pointer-events: auto;
+      animation: overlayOpen 0.4s cubic-bezier(0.87,0,0.13,1) forwards;
+    }
+    .mode-overlay.closing {
+      animation: overlayClose 0.4s cubic-bezier(0.87,0,0.13,1) forwards;
+    }
+    @keyframes overlayOpen {
+      from { transform: scale(0.8) translateY(50px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    @keyframes overlayClose {
+      from { transform: scale(1) translateY(0); opacity: 1; }
+      to { transform: scale(0.8) translateY(50px); opacity: 0; }
+    }
+    /* NEW: Overlay structure: a background element and content container */
+    .overlay-bg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      /* For dark mode, use a low brightness; for light mode, make it very bright */
+      filter: brightness(0.4);
+      z-index: 1;
+    }
+    body.light-mode .overlay-bg {
+      filter: brightness(1.5);  /* NEW: higher brightness for light mode */
+    }
+    .mode-overlay-content {
+      position: relative;
+      z-index: 2;
+      width: 100vw;
+      height: 100vh;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;  /* align texts to the bottom */
+      color: #fff;
+    }
+    body.light-mode .mode-overlay-content {
+      color: #000;
+    }
+    .overlay-title {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    .overlay-subtitle {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      opacity: 0.9;
+    }
+    .overlay-desc {
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+    /* NEW: Move close button outside content with extra margin */
+    .mode-close-btn {
+      position: absolute;
+      top: 2rem; 
+      right: 2rem;  /* NEW: increased margin from right */
+      font-size: 1.2rem;
+      cursor: pointer;
+      background: rgba(255,255,255,0.2);
+      padding: 0.4rem 0.8rem;
+      border-radius: 5px;
+      transition: background 0.3s;
+      z-index: 3;
+    }
+    body.light-mode .mode-close-btn {
+      background: rgba(0,0,0,0.2);
+      color: #000;
+    }
+    .mode-close-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    body.light-mode .mode-close-btn:hover {
+      background: rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+  <!-- Toggle Button & Dim Overlay -->
+  <div class="toggle-btn" id="toggleButton" onclick="toggleSidebar()">
+    <div class="bar1"></div>
+    <div class="bar2"></div>
+    <div class="bar3"></div>
+  </div>
+  <div class="dimscreen" id="dimscreen"></div>
+
+  <!-- Sidebar (Game Modes highlighted) -->
+  <nav class="sidebar" id="sidebar">
+    <ul style="margin-top:2rem; margin-bottom:1rem;">
+      <li><a href="index.html"> HOME</a></li>
+      <li><a href="battlepass.html"> BATTLE PASS</a></li>
+      <li><a href="map.html"> MAP</a></li>
+      <li><a href="gamemodes.html" class="current"> GAME MODES</a></li>
+      <li><a href="community.html"> COMMUNITY</a></li>
+      <li><a href="patchnotes.html"> PATCH NOTES</a></li>
+      <li><a href="about.html"> ABOUT</a></li>
+    </ul>
+    <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()"> Dark Mode</div>
+    <div class="system-toggle" id="systemToggle" onclick="toggleSystemTheme()">System Off</div>
+  </nav>
+
+  <!-- Headbar -->
+  <div class="content-headbar" id="headbar"><span>Game Modes</span></div>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <h1>GAME MODES</h1>
+  </section>
+
+  <!-- NEW: Title above mode tabs -->
+  <div class="mode-selection-title">Pick a mode that fits your playstyle:</div>
+
+  <!-- Main container for game modes -->
+  <section class="modes-container">
+    <!-- 4 game mode tabs -->
+    <div class="mode-block" 
+         style="background-image: url('assets/images/mode-deathmatch.jpg');"
+         data-title="Deathmatch"
+         data-subtitle="Hobby type 1v1, 14-round scoring"
+         data-desc="In Deathmatch, you face off 1v1 with another player. Each round you score points by outwitting or outplaying your opponent in various hobby tasks. After 14 rounds, the highest total wins. It's a tense head-to-head format where every round counts."
+         data-bg="assets/images/mode-deathmatch.jpg">
+      <div class="mode-info">
+        <div class="mode-title">Deathmatch</div>
+        <div class="mode-subtitle">Hobby type 1v1, 14-round scoring</div>
+      </div>
+    </div>
+
+    <div class="mode-block" 
+         style="background-image: url('assets/images/mode-battleroyale.jpg');"
+         data-title="Battle Royale"
+         data-subtitle="FFA on a giant map"
+         data-desc="Drop into a massive map filled with resources and other players. Only one can stand victorious at the end. Explore, gather supplies, outsmart opponents, and survive until you're the last hobbyist standing."
+         data-bg="assets/images/mode-battleroyale.jpg">
+      <div class="mode-info">
+        <div class="mode-title">Battle Royale</div>
+        <div class="mode-subtitle">FFA on a giant map</div>
+      </div>
+    </div>
+
+    <div class="mode-block" 
+         style="background-image: url('assets/images/mode-ccc.jpg');"
+         data-title="Culture Clash Carnival (CCC)"
+         data-subtitle="Point-capturing mode"
+         data-desc="Teams face off capturing cultural hotspots on the map. Each hotspot has a unique twist, referencing a patch's theme or location. Secure them to earn points over time. The carnival never stops, so keep clashing!"
+         data-bg="assets/images/mode-ccc.jpg">
+      <div class="mode-info">
+        <div class="mode-title">Culture Clash Carnival</div>
+        <div class="mode-subtitle">(CCC) - point-capturing mode</div>
+      </div>
+    </div>
+
+    <div class="mode-block" 
+         style="background-image: url('assets/images/mode-patchroulette.jpg');"
+         data-title="Patch Roulette"
+         data-subtitle="Deathmatch with rotating patches"
+         data-desc="Experience a fresh challenge each round as the rules and environment switch to a random patch’s mechanics. One moment it’s normal deathmatch, the next you might be battling with a limited weapon set from an old patch. Adapt or lose!"
+         data-bg="assets/images/mode-patchroulette.jpg">
+      <div class="mode-info">
+        <div class="mode-title">Patch Roulette</div>
+        <div class="mode-subtitle">Deathmatch with rotating patches</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Fullscreen overlay for mode details -->
+  <div class="mode-overlay" id="modeOverlay">
+    <div class="overlay-bg" id="overlayBg"></div>
+    <!-- NEW: Close button moved outside content for proper alignment -->
+    <div class="mode-close-btn" id="modeCloseBtn"> Close</div>
+    <div class="mode-overlay-content" id="modeOverlayContent">
+      <h2 class="overlay-title" id="overlayTitle"></h2>
+      <div class="overlay-subtitle" id="overlaySubtitle"></div>
+      <div class="overlay-desc" id="overlayDesc"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Bar -->
+  <div class="bottom-bar" id="bottom-bar">
+    <div>© 2025 Purple Lunchbox Productions</div>
+  </div>
+
+  <script>
+    let systemModeActive = false;
+    const toggleBtn = document.getElementById('toggleButton');
+    const dimscreen = document.getElementById('dimscreen');
+    const sidebar = document.getElementById('sidebar');
+    const themeToggle = document.getElementById('themeToggle');
+    const systemToggleBtn = document.getElementById('systemToggle');
+    const headbarEl = document.getElementById('headbar');
+    const bottomBarEl = document.getElementById('bottom-bar');
+
+    function toggleSidebar(){
+      sidebar.classList.toggle('active');
+      toggleBtn.classList.toggle('active');
+      dimscreen.classList.toggle('active');
+      if(document.body.classList.contains('light-mode')){
+        toggleBtn.querySelectorAll('div').forEach(d=>{ d.style.background='#000'; });
+      } else {
+        toggleBtn.querySelectorAll('div').forEach(d=>{ d.style.background='#fff'; });
+      }
+    }
+    window.toggleSidebar = toggleSidebar;
+
+    function toggleTheme(){
+      if(systemModeActive)return;
+      document.body.classList.toggle('light-mode');
+      if(document.body.classList.contains('light-mode')){
+        themeToggle.textContent = ' Light Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#000');
+      } else {
+        themeToggle.textContent = ' Dark Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#fff');
+      }
+    }
+    function toggleSystemTheme(){
+      systemModeActive = !systemModeActive;
+      if(systemModeActive){
+        systemToggleBtn.classList.add('active');
+        systemToggleBtn.textContent = 'System On';
+        themeToggle.style.opacity = '0.5';
+        themeToggle.style.pointerEvents = 'none';
+        handleSystemTheme();
+      } else {
+        systemToggleBtn.classList.remove('active');
+        systemToggleBtn.textContent = 'System Off';
+        themeToggle.style.opacity = '1';
+        themeToggle.style.pointerEvents = 'auto';
+      }
+    }
+    function handleSystemTheme(){
+      if(!systemModeActive)return;
+      let mq = window.matchMedia('(prefers-color-scheme: dark)');
+      setAutoTheme(mq.matches);
+      mq.onchange = e => { if(systemModeActive){ setAutoTheme(e.matches); } };
+    }
+    function setAutoTheme(isDark){
+      if(isDark){
+        document.body.classList.remove('light-mode');
+        themeToggle.textContent = 'System:  Dark Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#fff');
+      } else {
+        document.body.classList.add('light-mode');
+        themeToggle.textContent = 'System:  Light Mode';
+        toggleBtn.querySelectorAll('div').forEach(d=> d.style.background='#000');
+      }
+    }
+    window.toggleTheme = toggleTheme;
+    window.toggleSystemTheme = toggleSystemTheme;
+
+    window.onscroll = function(){
+      handleHeadbar();
+      handleBottomBar();
+    };
+    function handleHeadbar(){
+      const heroRect = document.querySelector('.hero-section').getBoundingClientRect();
+      if(heroRect.bottom <= 0){
+        headbarEl.classList.add('show');
+      } else {
+        headbarEl.classList.remove('show');
+      }
+    }
+    function handleBottomBar(){
+      const docHeight = document.documentElement.scrollHeight;
+      const winHeight = window.innerHeight;
+      const scrolled = window.scrollY + winHeight;
+      if(scrolled >= docHeight){
+        bottomBarEl.classList.add('show');
+      } else {
+        bottomBarEl.classList.remove('show');
+      }
+    }
+
+    /* MODE OVERLAY LOGIC */
+    const modeBlocks = document.querySelectorAll('.mode-block');
+    const modeOverlay = document.getElementById('modeOverlay');
+    const overlayBg = document.getElementById('overlayBg');
+    const modeOverlayContent = document.getElementById('modeOverlayContent');
+    const modeCloseBtn = document.getElementById('modeCloseBtn');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const overlaySubtitle = document.getElementById('overlaySubtitle');
+    const overlayDesc = document.getElementById('overlayDesc');
+
+    modeBlocks.forEach(block => {
+      block.addEventListener('click', () => {
+        const title = block.getAttribute('data-title');
+        const subtitle = block.getAttribute('data-subtitle');
+        const desc = block.getAttribute('data-desc');
+        const bg = block.getAttribute('data-bg');
+        overlayTitle.textContent = title;
+        overlaySubtitle.textContent = subtitle;
+        overlayDesc.textContent = desc;
+        // Set the overlay background on overlayBg with cover and centered
+        overlayBg.style.backgroundImage = `url('${bg}')`;
+        overlayBg.style.backgroundSize = "cover";
+        overlayBg.style.backgroundPosition = "center";
+        // Open overlay with animation
+        modeOverlay.classList.add('active');
+      });
+    });
+    modeCloseBtn.addEventListener('click', () => {
+      modeOverlay.classList.add('closing');
+      setTimeout(() => {
+        modeOverlay.classList.remove('active');
+        modeOverlay.classList.remove('closing');
+        // Clear overlay background image on close
+        overlayBg.style.backgroundImage = "";
+      }, 400);
+    });
+  </script>
+  <style>
+    /* NEW: Keyframes for fast, non-linear overlay open/close animations */
+    @keyframes overlayOpen {
+      from { transform: scale(0.8) translateY(50px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    @keyframes overlayClose {
+      from { transform: scale(1) translateY(0); opacity: 1; }
+      to { transform: scale(0.8) translateY(50px); opacity: 0; }
+    }
+    .mode-overlay.active {
+      animation: overlayOpen 0.4s cubic-bezier(0.87,0,0.13,1) forwards;
+    }
+    .mode-overlay.closing {
+      animation: overlayClose 0.4s cubic-bezier(0.87,0,0.13,1) forwards;
+    }
+  </style>
+</body>
+</html>

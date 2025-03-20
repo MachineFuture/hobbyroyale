@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hobby Royale - Profile Creation</title>
+  <style>
+    @font-face {
+      font-family: 'NintendoFont';
+      src: url('https://machinefuture.github.io/fonts/nintendo_NTLGDB_001.ttf') format('truetype');
+      font-display: swap;
+    }
+    :root {
+      --sidebar-dark: #4f4684;
+      --sidebar-light: #e2e0f0;
+      --bg-dark: #5d5c64;
+      --bg-light: #f3f2f5;
+      --txt-dark: #fff;
+      --txt-light: #000;
+    }
+    * {
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box;
+      font-family: 'NintendoFont', sans-serif;
+    }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--txt-dark);
+      overflow-x: hidden;
+      transition: background-color 0.3s, color 0.3s;
+      padding-bottom: 120px; /* so bottom bar won't overlap content */
+    }
+    body.light-mode {
+      background-color: var(--bg-light);
+      color: var(--txt-light);
+    }
+
+    /* Dim overlay */
+    .dimscreen {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background-color: rgba(0,0,0,0.5);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s; z-index: 998;
+    }
+    .dimscreen.active {
+      opacity: 1; pointer-events: auto;
+    }
+
+    /* Toggle button */
+    .toggle-btn {
+      position: fixed; top: 1rem; left: 1rem;
+      width: 30px; height: 25px;
+      cursor: pointer; z-index: 1100;
+    }
+    .toggle-btn div {
+      height: 3px; background: #fff;
+      margin: 4px; transition: 0.4s;
+      transform-origin: center;
+    }
+    .toggle-btn.active .bar1 {
+      transform: rotate(-45deg) translate(-5px, 5px);
+    }
+    .toggle-btn.active .bar2 {
+      opacity: 0;
+    }
+    .toggle-btn.active .bar3 {
+      transform: rotate(45deg) translate(-5px, -5px);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed; top: 0; left: -250px;
+      width: 250px; height: 100vh;
+      background-color: var(--sidebar-dark);
+      padding: 1rem;
+      transition: left 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+      z-index: 1000;
+    }
+    body.light-mode .sidebar {
+      background-color: var(--sidebar-light);
+    }
+    .sidebar.active { left: 0; }
+    .sidebar ul {
+      list-style: none; margin-top: 2rem; padding: 0;
+    }
+    .sidebar ul li {
+      margin-bottom: 0.6rem;
+      opacity: 0; transform: translateX(-20px);
+    }
+    .sidebar.active ul li {
+      animation: appear 0.4s forwards;
+    }
+    @keyframes appear {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .sidebar ul li a {
+      text-decoration: none; font-size: 1.2rem;
+      color: inherit; transition: background-color 0.3s;
+      padding: 0.2rem 0.3rem; display: block;
+    }
+    .sidebar ul li a:hover {
+      background-color: rgba(255,255,255,0.3);
+    }
+    .sidebar ul li a.current {
+      background-color: rgba(255,255,255,0.5);
+      color: #000; border-radius: 5px;
+      box-shadow: 0 0 8px rgba(255,255,255,0.7);
+    }
+    body.light-mode .sidebar ul li a.current {
+      background-color: rgba(0,0,0,0.3);
+      color: #fff; box-shadow: 0 0 8px rgba(0,0,0,0.7);
+    }
+
+    .theme-toggle {
+      position: absolute; bottom: 4.5rem; left: 1rem;
+      cursor: pointer; border: 1px solid #fff;
+      padding: 0.3rem 0.5rem; border-radius: 5px;
+    }
+    .system-toggle {
+      position: absolute; bottom: 1rem; left: 1rem;
+      font-size: 0.9rem; border: 1px dashed #fff;
+      padding: 0.3rem; margin-top: 1rem;
+      transition: 0.3s; cursor: pointer;
+    }
+    .system-toggle.active {
+      border: 1px solid #fff; background: rgba(255,255,255,0.2);
+    }
+
+    /* Headbar & bottom bar */
+    .content-headbar {
+      position: fixed; top: -60px; left: 0;
+      width: 100%; height: 60px;
+      background-color: var(--sidebar-dark);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      transition: top 0.4s; z-index: 999;
+    }
+    body.light-mode .content-headbar {
+      background-color: var(--sidebar-light); color: #000;
+    }
+    .content-headbar.show { top: 0; }
+    .bottom-bar {
+      position: fixed; bottom: -70px; left: 0;
+      width: 100%; height: 70px;
+      background-color: var(--sidebar-dark);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      transition: bottom 0.4s; z-index: 997;
+      flex-direction: column; gap: 2px;
+    }
+    body.light-mode .bottom-bar {
+      background-color: var(--sidebar-light); color: #000;
+    }
+    .bottom-bar.show { bottom: 0; }
+
+    /* Main content */
+    .main-content {
+      width: 90%; max-width: 1200px;
+      margin: 6rem auto 2rem auto;
+      background: none;
+    }
+    .page-title {
+      font-size: 2rem; text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    .instructions {
+      font-size: 1rem; text-align: center;
+      margin-bottom: 1rem; opacity: 0.8;
+    }
+
+    /* ID canvas => 1080x600, transparent background */
+    #idCanvas {
+      display: block;
+      margin: 1rem auto;
+      width: 540px; height: 300px;
+      background: transparent;
+    }
+    @media(max-width:600px){
+      #idCanvas {
+        width: 360px; height: 200px;
+      }
+    }
+
+    /* Container for fields */
+    .input-container {
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 1rem;
+      display: flex; flex-wrap: wrap; gap: 1rem;
+      justify-content: space-between;
+    }
+    body.light-mode .input-container {
+      background: rgba(0,0,0,0.1);
+    }
+    .field-group {
+      width: calc(50% - 1rem);
+      display: flex; flex-direction: column;
+    }
+    .field-group label {
+      margin-bottom: 0.3rem; font-size: 1rem; font-weight: bold;
+    }
+    .field-group select,
+    .field-group input[type="text"],
+    .field-group input[type="file"],
+    .field-group input[type="color"],
+    .field-group input[type="date"] {
+      padding: 0.4rem; border: none; outline: none;
+      border-radius: 5px; font-size: 1rem;
+      background: #333; color: #fff;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.light-mode .field-group select,
+    body.light-mode .field-group input[type="text"],
+    body.light-mode .field-group input[type="file"],
+    body.light-mode .field-group input[type="color"],
+    body.light-mode .field-group input[type="date"] {
+      background: #ccc; color: #000;
+    }
+    .custom-hobby { display: none; }
+
+    .buttons {
+      width: 100%; display: flex; justify-content: flex-end;
+      gap: 1rem; margin-top: 1rem;
+    }
+    button {
+      padding: 0.6rem 1.2rem; cursor: pointer;
+      border: none; border-radius: 5px;
+      background: rgba(255,255,255,0.2);
+      color: #fff; font-size: 1rem;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    body.light-mode button {
+      background: rgba(0,0,0,0.2); color: #000;
+    }
+    body.light-mode button:hover {
+      background: rgba(0,0,0,0.3);
+    }
+
+    /* Loading animation glyphs */
+    .loading-animation {
+      display: none; 
+      margin: 0 auto 1rem auto;
+      font-size: 1.5rem; 
+      text-align: center; 
+      color: #fff;
+    }
+    body.light-mode .loading-animation {
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+  <!-- Toggle & dim -->
+  <div class="toggle-btn" id="toggleButton" onclick="toggleSidebar()">
+    <div class="bar1"></div>
+    <div class="bar2"></div>
+    <div class="bar3"></div>
+  </div>
+  <div class="dimscreen" id="dimscreen"></div>
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <ul style="margin-top:2rem; margin-bottom:1rem;">
+      <li><a href="index.html"> HOME</a></li>
+      <li><a href="battlepass.html"> BATTLE PASS</a></li>
+      <li><a href="map.html"> MAP</a></li>
+      <li><a href="gamemodes.html"> GAME MODES</a></li>
+      <li><a href="community.html"> COMMUNITY</a></li>
+      <li><a href="patchnotes.html"> PATCH NOTES</a></li>
+      <li><a href="about.html"> ABOUT</a></li>
+      <!-- This page => icon is  -->
+      <li><a href="profilecreation.html" class="current"> PROFILE CREATION</a></li>
+    </ul>
+    <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()"> Dark Mode</div>
+    <div class="system-toggle" id="systemToggle" onclick="toggleSystemTheme()">System Off</div>
+  </nav>
+
+  <!-- Headbar -->
+  <div class="content-headbar" id="headbar">
+    <span>Create Your Own Profile!</span>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="bottom-bar" id="bottom-bar">
+    <div>© 2025 Purple Lunchbox Productions</div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <div class="page-title">Create Your Own Profile</div>
+    <div class="instructions">Fill out the details, then click "Render the Image". You can download the PNG after it finishes.</div>
+
+    <!-- Loading animation glyphs -->
+    <div class="loading-animation" id="loadingAnim"></div>
+
+    <!-- ID Canvas -->
+    <canvas id="idCanvas" width="1080" height="600"></canvas>
+
+    <!-- Inputs -->
+    <div class="input-container">
+      <!-- Display Name -->
+      <div class="field-group">
+        <label for="displayName">Display Name</label>
+        <input type="text" id="displayName" placeholder="e.g. Future Machine" />
+      </div>
+      <!-- Username -->
+      <div class="field-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="lowercase, underscores, numbers" />
+      </div>
+      <!-- Hobby -->
+      <div class="field-group">
+        <label for="hobbySelect">Hobby Type</label>
+        <select id="hobbySelect">
+          <option value="Console Collector">Console Collector</option>
+          <option value="Railway Enthusiast">Railway Enthusiast</option>
+          <option value="Artist">Artist</option>
+          <option value="Gamer">Gamer</option>
+          <option value="PC Enthusiast">PC Enthusiast</option>
+          <option value="Coaster Enthusiast">Coaster Enthusiast</option>
+          <option value="Coaster Thoosie">Coaster Thoosie</option>
+          <option value="Coder">Coder</option>
+          <option value="Custom">Custom (type your own)</option>
+        </select>
+        <input type="text" id="customHobby" class="custom-hobby" placeholder="Your hobby..." />
+      </div>
+      <!-- Region -->
+      <div class="field-group">
+        <label for="regionSelect">Region</label>
+        <select id="regionSelect">
+          <option value="Asia">Asia</option>
+          <option value="Europe">Europe</option>
+          <option value="North America">North America</option>
+          <option value="South America">South America</option>
+          <option value="Africa">Africa</option>
+          <option value="Oceania">Oceania</option>
+          <option value="Antarctica">Antarctica</option>
+        </select>
+      </div>
+      <!-- Favorite Map -->
+      <div class="field-group">
+        <label for="mapSelect">Favorite Map</label>
+        <select id="mapSelect">
+          <option value="japan 2017">Japan 2017</option>
+          <option value="nintendo museum">Nintendo Museum</option>
+          <option value="windows me desktop">Windows Me Desktop</option>
+          <option value="cedar point">Cedar Point</option>
+          <option value="survival multiplayer server">Survival Multiplayer Server</option>
+        </select>
+      </div>
+      <!-- Patch Version -->
+      <div class="field-group">
+        <label for="patchSelect">Patch Version</label>
+        <select id="patchSelect">
+          <option value="8.4.0">8.4.0</option>
+          <option value="8.3.0">8.3.0</option>
+          <option value="8.2.0">8.2.0</option>
+          <option value="8.1.0">8.1.0</option>
+          <option value="8.0.0">8.0.0</option>
+          <option value="7.3.0">7.3.0</option>
+          <option value="7.2.0">7.2.0</option>
+          <option value="7.1.0">7.1.0</option>
+          <option value="7.0.0">7.0.0</option>
+          <option value="6.3.0">6.3.0</option>
+          <option value="6.2.0">6.2.0</option>
+          <option value="6.1.0">6.1.0</option>
+          <option value="6.0.0">6.0.0</option>
+          <option value="5.3.0">5.3.0</option>
+          <option value="5.2.0">5.2.0</option>
+          <option value="5.1.0">5.1.0</option>
+          <option value="5.0.0">5.0.0</option>
+          <option value="4.3.0">4.3.0</option>
+          <option value="4.2.0">4.2.0</option>
+          <option value="4.1.0">4.1.0</option>
+          <option value="4.0.0">4.0.0</option>
+          <option value="3.3.0">3.3.0</option>
+          <option value="3.2.0">3.2.0</option>
+          <option value="3.1.0">3.1.0</option>
+          <option value="3.0.0">3.0.0</option>
+          <option value="2.3.0">2.3.0</option>
+          <option value="2.2.0">2.2.0</option>
+          <option value="2.1.0">2.1.0</option>
+          <option value="2.0.0">2.0.0</option>
+          <option value="1.3.0">1.3.0</option>
+          <option value="1.2.0">1.2.0</option>
+          <option value="1.1.0">1.1.0</option>
+          <option value="1.0.0">1.0.0</option>
+        </select>
+      </div>
+      <!-- Top Bar Color & Registry Date in the same row -->
+      <div class="field-group" style="display:flex; flex-direction:column;">
+        <label for="topBarColor">Top Bar Color</label>
+        <input type="color" id="topBarColor" value="#4f4684" />
+      </div>
+      <div class="field-group" style="display:flex; flex-direction:column;">
+        <label for="registryDate">Date of Registry</label>
+        <input type="date" id="registryDate"/>
+      </div>
+      <!-- Profile Image -->
+      <div class="field-group">
+        <label for="profileImage">Profile Image</label>
+        <input type="file" id="profileImage" accept="image/*" />
+      </div>
+
+      <div class="buttons">
+        <button id="renderBtn">Render the Image</button>
+        <button id="downloadBtn">Download PNG</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let systemModeActive = false;
+    const toggleBtn = document.getElementById('toggleButton');
+    const dimscreen = document.getElementById('dimscreen');
+    const sidebar = document.getElementById('sidebar');
+    const themeToggle = document.getElementById('themeToggle');
+    const systemToggleBtn = document.getElementById('systemToggle');
+    const headbarEl = document.getElementById('headbar');
+    const bottomBarEl = document.getElementById('bottom-bar');
+    const loadingAnim = document.getElementById('loadingAnim');
+    let loadingInterval = null;
+
+    // Default date => today in YYYY-MM-DD
+    function getTodayISO(){
+      let now = new Date();
+      let y = now.getFullYear();
+      let m = String(now.getMonth()+1).padStart(2,'0');
+      let d = String(now.getDate()).padStart(2,'0');
+      return `${y}-${m}-${d}`;
+    }
+
+    // Convert date input (YYYY-MM-DD) to mm/dd/yyyy
+    function toMMDDYYYY(isoStr){
+      if(!isoStr) return "mm/dd/yyyy";
+      let parts = isoStr.split("-");
+      if(parts.length !== 3) return "mm/dd/yyyy";
+      return `${parts[1]}/${parts[2]}/${parts[0]}`; // mm/dd/yyyy
+    }
+
+    function toggleSidebar(){
+      sidebar.classList.toggle('active');
+      toggleBtn.classList.toggle('active');
+      dimscreen.classList.toggle('active');
+      if(document.body.classList.contains('light-mode')){
+        toggleBtn.querySelectorAll('div').forEach(d => d.style.background='#000');
+      } else {
+        toggleBtn.querySelectorAll('div').forEach(d => d.style.background='#fff');
+      }
+    }
+    window.toggleSidebar = toggleSidebar;
+
+    function toggleTheme(){
+      if(systemModeActive) return;
+      document.body.classList.toggle('light-mode');
+      if(document.body.classList.contains('light-mode')){
+        themeToggle.textContent = ' Light Mode';
+        toggleBtn.querySelectorAll('.bar1,.bar2,.bar3').forEach(d => d.style.background = '#000');
+      } else {
+        themeToggle.textContent = ' Dark Mode';
+        toggleBtn.querySelectorAll('.bar1,.bar2,.bar3').forEach(d => d.style.background = '#fff');
+      }
+    }
+    function toggleSystemTheme(){
+      systemModeActive = !systemModeActive;
+      if(systemModeActive){
+        systemToggleBtn.classList.add('active');
+        systemToggleBtn.textContent = 'System On';
+        themeToggle.style.opacity = '0.5';
+        themeToggle.style.pointerEvents = 'none';
+        handleSystemTheme();
+      } else {
+        systemToggleBtn.classList.remove('active');
+        systemToggleBtn.textContent = 'System Off';
+        themeToggle.style.opacity = '1';
+        themeToggle.style.pointerEvents = 'auto';
+      }
+    }
+    function handleSystemTheme(){
+      if(!systemModeActive)return;
+      let mq = window.matchMedia('(prefers-color-scheme: dark)');
+      setAutoTheme(mq.matches);
+      mq.onchange = e => { if(systemModeActive){ setAutoTheme(e.matches); } };
+    }
+    function setAutoTheme(isDark){
+      if(isDark){
+        document.body.classList.remove('light-mode');
+        themeToggle.textContent = 'System:  Dark Mode';
+        toggleBtn.querySelectorAll('div').forEach(d => d.style.background='#fff');
+      } else {
+        document.body.classList.add('light-mode');
+        themeToggle.textContent = 'System:  Light Mode';
+        toggleBtn.querySelectorAll('div').forEach(d => d.style.background='#000');
+      }
+    }
+
+    window.onscroll = function(){
+      handleHeadbar();
+      handleBottomBar();
+    };
+    function handleHeadbar(){
+      if(window.scrollY > 30){
+        headbarEl.classList.add('show');
+      } else {
+        headbarEl.classList.remove('show');
+      }
+    }
+    function handleBottomBar(){
+      const docHeight = document.documentElement.scrollHeight;
+      const winHeight = window.innerHeight;
+      const scrolled = window.scrollY + winHeight;
+      if(scrolled >= docHeight){
+        bottomBarEl.classList.add('show');
+      } else {
+        bottomBarEl.classList.remove('show');
+      }
+    }
+
+    /* Show/hide custom hobby field */
+    const hobbySelect = document.getElementById('hobbySelect');
+    const customHobbyInput = document.getElementById('customHobby');
+    hobbySelect.addEventListener('change', () => {
+      if(hobbySelect.value === 'Custom'){
+        customHobbyInput.style.display = 'block';
+      } else {
+        customHobbyInput.style.display = 'none';
+      }
+    });
+
+    /* LOADING ANIMATION (rotating glyphs) */
+    const glyphs = ["","","","","","","",""];
+    function startLoading(){
+      loadingAnim.style.display = 'block';
+      let idx = 0;
+      loadingInterval = setInterval(() => {
+        loadingAnim.textContent = glyphs[idx];
+        idx = (idx + 1) % glyphs.length;
+      }, 80);
+    }
+    function stopLoading(){
+      if(loadingInterval) clearInterval(loadingInterval);
+      loadingAnim.style.display = 'none';
+    }
+
+    /* ID logic */
+    const mapCodes = {
+      "japan 2017": "JP2017",
+      "nintendo museum": "NTD0MS",
+      "windows me desktop": "WMEDSK",
+      "cedar point": "CDRP0T",
+      "survival multiplayer server": "SVMPSV"
+    };
+    const hobbyCodes = {
+      "Console Collector": "CC",
+      "Railway Enthusiast": "RE",
+      "Artist": "AT",
+      "Gamer": "GM",
+      "PC Enthusiast": "PE",
+      "Coaster Enthusiast": "CE",
+      "Coaster Thoosie": "CT",
+      "Coder": "CD"
+    };
+    const regionCodes = {
+      "Asia": "A",
+      "Europe": "E",
+      "North America": "N",
+      "South America": "S",
+      "Africa": "F",
+      "Oceania": "O",
+      "Antarctica": "T"
+    };
+
+    const idCanvas = document.getElementById('idCanvas');
+    const ctx = idCanvas.getContext('2d');
+
+    function toTitleCase(str){
+      return str.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1));
+    }
+    function cropImageToSquare(img){
+      const side = Math.min(img.width, img.height);
+      const c2 = document.createElement('canvas');
+      c2.width = side; c2.height = side;
+      const cx = c2.getContext('2d');
+      cx.drawImage(img, (img.width - side)/2, (img.height - side)/2, side, side, 0,0, side, side);
+      return c2;
+    }
+    async function loadProfileImg(){
+      const file = document.getElementById('profileImage').files[0];
+      if(!file) return null;
+      return new Promise((resolve, reject) => {
+        let i = new Image();
+        i.onload = () => {
+          let sq = cropImageToSquare(i);
+          resolve(sq);
+        };
+        i.onerror = reject;
+        i.src = URL.createObjectURL(file);
+      });
+    }
+    function roundRect(ctx,x,y,w,h,r){
+      ctx.beginPath();
+      ctx.moveTo(x+r,y);
+      ctx.lineTo(x+w-r,y);
+      ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+      ctx.lineTo(x+w,y+h-r);
+      ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+      ctx.lineTo(x+r,y+h);
+      ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+      ctx.lineTo(x,y+r);
+      ctx.quadraticCurveTo(x,y,x+r,y);
+      ctx.closePath();
+    }
+
+    // Build final ID => 18 digits
+    function buildID(displayName, patch, hobby, map, region){
+      const patchNum = patch.replace(/\./g,"").slice(0,3);
+      function dispNameCode(){
+        let words = displayName.trim().split(/\s+/);
+        let code = "";
+        if(words.length === 1){
+          let w = words[0].toUpperCase();
+          code = (w.length<=4) ? w : w.slice(0,4);
+        } else {
+          for(let i=0;i<words.length;i++){
+            code += words[i][0].toUpperCase();
+            if(code.length>=4) break;
+          }
+        }
+        while(code.length<4) code+="X";
+        return code;
+      }
+      function hobbyCode(){
+        if(hobbyCodes[hobby]) return hobbyCodes[hobby];
+        let wrds = hobby.trim().split(/\s+/);
+        let res="";
+        for(let i=0;i<2&&i<wrds.length;i++){
+          res += wrds[i][0].toUpperCase();
+        }
+        while(res.length<2) res+="X";
+        return res;
+      }
+      const mapCode = mapCodes[map] || "SVMPSV";
+      const regCode = regionCodes[region] || "X";
+      return "HR"+patchNum+dispNameCode()+mapCode+hobbyCode()+regCode;
+    }
+
+    function getRegistryDateStr(){
+      const registryDateInput = document.getElementById('registryDate');
+      let isoVal = registryDateInput.value; // yyyy-mm-dd
+      if(!isoVal) return "mm/dd/yyyy";
+      return toMMDDYYYY(isoVal);
+    }
+
+    // Convert date from yyyy-mm-dd => mm/dd/yyyy
+    function toMMDDYYYY(isoStr){
+      let parts = isoStr.split("-");
+      if(parts.length<3) return "mm/dd/yyyy";
+      return parts[1] + "/" + parts[2] + "/" + parts[0];
+    }
+
+    async function renderID(){
+      startLoading();
+      await new Promise(r=>setTimeout(r,300)); // short delay
+
+      const displayName = document.getElementById('displayName').value.trim() || "Display name";
+      const username = document.getElementById('username').value.trim() || "username";
+      let hobbyVal = (hobbySelect.value==="Custom") ? customHobby.value.trim() : hobbySelect.value;
+      if(!hobbyVal) hobbyVal="Hobby Type";
+      const regionVal = document.getElementById('regionSelect').value;
+      const mapVal = document.getElementById('mapSelect').value;
+      const patchVal = document.getElementById('patchSelect').value;
+      const topColor = document.getElementById('topBarColor').value;
+      const regDateStr = getRegistryDateStr(); // "mm/dd/yyyy"
+
+      // Clear
+      ctx.clearRect(0,0,1080,600);
+
+      // Outer card
+      ctx.save();
+      roundRect(ctx,10,10,1060,580,30);
+      ctx.clip();
+      ctx.fillStyle="#fff";
+      ctx.fill();
+      ctx.lineWidth=5;
+      ctx.strokeStyle="#000";
+      ctx.stroke();
+      ctx.restore();
+
+      // Top bar
+      ctx.save();
+      roundRect(ctx,10,10,1060,80,30);
+      ctx.clip();
+      ctx.fillStyle=topColor;
+      ctx.fill();
+      ctx.restore();
+
+      // Title
+      ctx.fillStyle="#fff";
+      ctx.textAlign="left";
+      ctx.font="40px 'NintendoFont'";
+      ctx.fillText("Hobby Royale ID Card",40,70);
+
+      // Patch
+      ctx.textAlign="right";
+      ctx.fillText(patchVal,1060-40,70);
+
+      // PFP
+      const pfp = await loadProfileImg();
+      if(pfp){
+        ctx.drawImage(pfp,790,120,250,250);
+      } else {
+        ctx.strokeStyle="#000";
+        ctx.lineWidth=3;
+        ctx.strokeRect(790,120,250,250);
+        ctx.font="32px 'NintendoFont'";
+        ctx.fillStyle="#000";
+        ctx.textAlign="center";
+        ctx.fillText("profile",790+125,120+110);
+        ctx.fillText("image",790+125,120+150);
+      }
+
+      // Labels
+      // N A M E
+      ctx.textAlign="left";
+      ctx.fillStyle="#666";
+      ctx.font="26px 'NintendoFont'";
+      ctx.fillText("N A M E",40,130);
+
+      // Display Name
+      ctx.fillStyle="#000";
+      let nameFont=44;
+      ctx.font=`${nameFont}px 'NintendoFont'`;
+      while(ctx.measureText(displayName).width>700 && nameFont>16){
+        nameFont-=2;
+        ctx.font=`${nameFont}px 'NintendoFont'`;
+      }
+      ctx.fillText(displayName,40,175);
+
+      // username
+      ctx.fillStyle="#666";
+      let userFont=32;
+      ctx.font=`${userFont}px 'NintendoFont'`;
+      const userStr="@"+username;
+      while(ctx.measureText(userStr).width>700 && userFont>14){
+        userFont-=2;
+        ctx.font=`${userFont}px 'NintendoFont'`;
+      }
+      ctx.fillText(userStr,40,215);
+
+      // H O B B Y  T Y P E
+      ctx.fillStyle="#666";
+      ctx.font="26px 'NintendoFont'";
+      ctx.fillText("H O B B Y  T Y P E",40,270);
+
+      // hobby text
+      ctx.fillStyle="#000";
+      let hobbyFont=40;
+      ctx.font=`${hobbyFont}px 'NintendoFont'`;
+      while(ctx.measureText(hobbyVal).width>700 && hobbyFont>14){
+        hobbyFont-=2;
+        ctx.font=`${hobbyFont}px 'NintendoFont'`;
+      }
+      ctx.fillText(hobbyVal,40,315);
+
+      // R E G I O N
+      ctx.fillStyle="#666";
+      ctx.font="26px 'NintendoFont'";
+      ctx.fillText("R E G I O N",40,370);
+
+      // region
+      ctx.fillStyle="#000";
+      let regionFont=36;
+      ctx.font=`${regionFont}px 'NintendoFont'`;
+      while(ctx.measureText(regionVal).width>700 && regionFont>14){
+        regionFont-=2;
+        ctx.font=`${regionFont}px 'NintendoFont'`;
+      }
+      ctx.fillText(regionVal,40,410);
+
+      // H O M E  M A P
+      ctx.fillStyle="#666";
+      ctx.font="26px 'NintendoFont'";
+      ctx.fillText("H O M E  M A P",40,465);
+
+      // map text
+      ctx.fillStyle="#000";
+      let mapText=toTitleCase(mapVal);
+      let mapFont=36;
+      ctx.font=`${mapFont}px 'NintendoFont'`;
+      while(ctx.measureText(mapText).width>700 && mapFont>14){
+        mapFont-=2;
+        ctx.font=`${mapFont}px 'NintendoFont'`;
+      }
+      ctx.fillText(mapText,40,505);
+
+      // Date of registry => smaller text => 20px => right aligned => above ID
+      // "D A T E  O F  R E G I S T R Y" label
+      ctx.fillStyle="#666";
+      ctx.font="20px 'NintendoFont'";
+      ctx.textAlign="right";
+      ctx.fillText("D A T E  O F  R E G I S T R Y",790+250,440);
+
+      // date text
+      ctx.fillStyle="#000";
+      ctx.font="30px 'NintendoFont'";
+      ctx.fillText(regDateStr,790+250,480);
+
+      // ID label => same style as other labels => 26px => placed below date
+      ctx.fillStyle="#666";
+      ctx.font="26px 'NintendoFont'";
+      ctx.fillText("I D  N U M B E R",790+250,520);
+
+      // build final ID
+      const finalID = buildID(displayName, patchVal, hobbyVal, mapVal, regionVal);
+
+      // ID text => 44px => y=580
+      ctx.fillStyle="#000";
+      ctx.font="44px 'NintendoFont'";
+      ctx.fillText(finalID,790+250,570);
+
+      stopLoading();
+    }
+
+    // On load => set default date to today, then render
+    window.addEventListener('load',()=>{
+      document.getElementById('registryDate').value = getTodayISO();
+      renderID();
+    });
+
+    document.getElementById('renderBtn').addEventListener('click',renderID);
+    document.getElementById('downloadBtn').addEventListener('click',()=>{
+      const user = document.getElementById('username').value.trim() || "user";
+      let link = document.createElement('a');
+      link.download = `MyHobbyID_${user}.png`;
+      link.href = idCanvas.toDataURL("image/png");
+      link.click();
+    });
+  </script>
+
+  <!-- Staircase anim for sidebar items -->
+  <style>
+    .sidebar.active ul li:nth-child(1){animation-delay:0.1s;}
+    .sidebar.active ul li:nth-child(2){animation-delay:0.15s;}
+    .sidebar.active ul li:nth-child(3){animation-delay:0.2s;}
+    .sidebar.active ul li:nth-child(4){animation-delay:0.25s;}
+    .sidebar.active ul li:nth-child(5){animation-delay:0.3s;}
+    .sidebar.active ul li:nth-child(6){animation-delay:0.35s;}
+    .sidebar.active ul li:nth-child(7){animation-delay:0.4s;}
+    .sidebar.active ul li:nth-child(8){animation-delay:0.45s;}
+  </style>
+</body>
+</html>

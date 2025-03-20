@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hobby Royale - Mainpage Reversion</title>
+  <style>
+    @font-face {
+      font-family: 'NintendoFont';
+      src: url('https://machinefuture.github.io/fonts/nintendo_NTLGDB_001.ttf') format('truetype');
+      font-display: swap;
+    }
+    :root {
+      --sidebar-dark: #4f4684;
+      --sidebar-light: #e2e0f0;
+      --bg-dark: #5d5c64;
+      --bg-light: #f3f2f5;
+      --txt-dark: #fff;
+      --txt-light: #000;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'NintendoFont', sans-serif;
+    }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--txt-dark);
+      overflow-x: hidden;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    body.light-mode {
+      background-color: var(--bg-light);
+      color: var(--txt-light);
+    }
+    .dimscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0,0,0,0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s;
+      z-index: 998;
+    }
+    .dimscreen.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    /* Toggle button using previous best transforms */
+    .toggle-btn {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      width: 30px;
+      height: 25px;
+      cursor: pointer;
+      z-index: 1100;
+    }
+    .toggle-btn div {
+      height: 3px;
+      background: #fff;
+      margin: 4px;
+      transition: 0.4s;
+      transform-origin: center;
+    }
+    .toggle-btn.active .bar1 {
+      transform: rotate(-45deg) translate(-5px, 5px);
+    }
+    .toggle-btn.active .bar2 {
+      opacity: 0;
+    }
+    .toggle-btn.active .bar3 {
+      transform: rotate(45deg) translate(-5px, -5px);
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -250px;
+      height: 100vh;
+      width: 250px;
+      background-color: var(--sidebar-dark);
+      padding: 1rem;
+      transition: left 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+      z-index: 1000;
+    }
+    body.light-mode .sidebar {
+      background-color: var(--sidebar-light);
+    }
+    .sidebar.active {
+      left: 0;
+    }
+    .sidebar ul {
+      list-style: none;
+      margin-top: 2rem;
+      padding: 0;
+    }
+    .sidebar ul li {
+      margin-bottom: 0.6rem;
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    .sidebar.active ul li {
+      animation: appear 0.4s forwards;
+    }
+    .sidebar.active ul li:nth-child(1) { animation-delay: 0.1s; }
+    .sidebar.active ul li:nth-child(2) { animation-delay: 0.15s; }
+    .sidebar.active ul li:nth-child(3) { animation-delay: 0.2s; }
+    .sidebar.active ul li:nth-child(4) { animation-delay: 0.25s; }
+    .sidebar.active ul li:nth-child(5) { animation-delay: 0.3s; }
+    .sidebar.active ul li:nth-child(6) { animation-delay: 0.35s; }
+    .sidebar.active ul li:nth-child(7) { animation-delay: 0.4s; }
+    @keyframes appear {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .sidebar ul li a {
+      text-decoration: none;
+      font-size: 1.2rem;
+      color: inherit;
+      transition: background-color 0.3s;
+      padding: 0.2rem 0.3rem;
+      display: block;
+    }
+    .sidebar ul li a:hover {
+      background-color: rgba(255,255,255,0.3);
+    }
+    .theme-toggle {
+      position: absolute;
+      bottom: 4.5rem;
+      left: 1rem;
+      cursor: pointer;
+      border: 1px solid #fff;
+      padding: 0.3rem 0.5rem;
+      border-radius: 5px;
+      transition: border 0.3s;
+    }
+    .system-toggle {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      font-size: 0.9rem;
+      border: 1px dashed #fff;
+      padding: 0.3rem;
+      margin-top: 1rem;
+      display: inline-block;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+    .system-toggle.active {
+      border: 1px solid #fff;
+      background: rgba(255,255,255,0.2);
+    }
+    .opening-visual {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+    /* Video background exactly as in snippet 1 */
+    .bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -2;
+    }
+    .headline-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.2);
+      padding: 1rem;
+      border-radius: 10px;
+      text-align: center;
+      z-index: 2;
+      animation: titleMorphIn 1s ease-out forwards;
+      opacity: 0;
+    }
+    @keyframes titleMorphIn {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+    /* ADDED: id="mainTitle" for the 5-click method */
+    .headline-container h1 {
+      font-size: 5rem;
+      color: #000;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+      cursor: pointer; /* so it's clear it's clickable */
+    }
+    .headline-container h2 {
+      font-size: 2rem;
+      color: #000;
+    }
+    /* Announcement Section – using critics‑like scroll logic */
+    #announcement {
+      position: relative;
+      width: 100%;
+      height: 60vh;
+      margin: auto;
+      overflow: hidden;
+      background: rgba(255,255,255,0.2);
+      transition: background 0.8s;
+    }
+    body.light-mode #announcement {
+      background: rgba(0,0,0,0.1);
+    }
+    #announcement-inner {
+      display: flex;
+      flex-wrap: wrap;
+      width: 90%;
+      max-width: 1200px;
+      margin: auto;
+      align-items: center;
+      justify-content: center;
+    }
+    #announcement-text {
+      flex: 1;
+      text-align: left;
+      opacity: 0;
+    }
+    #announcement-text h2 {
+      font-size: 1.8rem;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    #announcement-text p {
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+    #announcement-image {
+      flex: 2;
+      text-align: right;
+      opacity: 0;
+    }
+    #announcement-image img {
+      width: 100%;
+      max-width: 600px;
+    }
+    @keyframes dreamTextIn {
+      from { opacity: 0; transform: translateX(-50px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes linesIn {
+      from { opacity: 0; transform: translateX(-50px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes dreamImageIn {
+      from { opacity: 0; transform: translateX(50px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .content-headbar {
+      position: fixed;
+      top: -60px;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background-color: var(--sidebar-dark);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: top 0.4s;
+      z-index: 999;
+    }
+    body.light-mode .content-headbar {
+      background-color: var(--sidebar-light);
+      color: #000;
+    }
+    .content-headbar.show { top: 0; }
+    section {
+      max-width: 1400px;
+      margin: auto;
+      padding: 4rem 1rem;
+      transition: transform 0.3s;
+    }
+    .section-box {
+      background: rgba(255,255,255,0.4);
+      border-radius: 15px;
+      padding: 2rem;
+      margin: auto;
+      transition: transform 0.3s;
+    }
+    body.light-mode .section-box { background: rgba(0,0,0,0.1); }
+    .section-box img {
+      width: 100%;
+      height: auto;
+      margin-bottom: 1rem;
+    }
+    .active-tab { transform: scale(1.05); }
+    .bottom-bar {
+      position: fixed;
+      bottom: -70px;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      background-color: var(--sidebar-dark);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: bottom 0.4s;
+      z-index: 997;
+      flex-direction: column;
+      gap: 2px;
+    }
+    body.light-mode .bottom-bar {
+      background-color: var(--sidebar-light);
+      color: #000;
+    }
+    .bottom-bar.show { bottom: 0; }
+    .coming-text {
+      background: rgba(255,255,255,0.2);
+      padding: 0.3rem 0.5rem;
+      border-radius: 5px;
+      transition: transform 0.3s;
+    }
+    .coming-text:hover { transform: scale(1.1) rotate(1deg); }
+    .left-anim {
+      opacity: 0;
+      transform: translateX(-100px);
+      transition: transform 0.8s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.8s;
+    }
+    .right-anim {
+      opacity: 0;
+      transform: translateX(100px);
+      transition: transform 0.8s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.8s;
+    }
+    .visible { opacity: 1 !important; transform: translateX(0) !important; }
+    #critics {
+      position: relative;
+      width: 100%;
+      padding: 4rem 1rem;
+      background: rgba(255,255,255,0.2);
+      margin-top: 2rem;
+      overflow: hidden;
+    }
+    body.light-mode #critics { background: rgba(0,0,0,0.1); }
+    .critic-item {
+      margin-bottom: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      opacity: 0;
+      transform: translateY(100px);
+    }
+    @keyframes criticsIn {
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .critic-logo {
+      flex: 0 0 80px;
+      margin-right: 1rem;
+    }
+    .critic-content {
+      flex: 1 1 200px;
+    }
+    .critic-content h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    #discover {
+      text-align: center;
+      font-size: 4rem;
+      margin: 2rem auto;
+      animation: colorCycle 3s infinite;
+      cursor: pointer;
+    }
+    @keyframes colorCycle {
+      0% { color: red; }
+      20% { color: orange; }
+      40% { color: green; }
+      60% { color: cyan; }
+      80% { color: purple; }
+      100% { color: red; }
+    }
+    #discover.bounce {
+      animation: bounce 1.5s infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="toggle-btn" id="toggleButton" onclick="toggleSidebar()">
+    <div class="bar1"></div>
+    <div class="bar2"></div>
+    <div class="bar3"></div>
+  </div>
+  <div class="dimscreen" id="dimscreen"></div>
+  <nav class="sidebar" id="sidebar">
+    <ul style="margin-top:2rem; margin-bottom:1rem;">
+      <li><a href="index.html"> HOME</a></li>
+      <li><a href="battlepass.html"> BATTLE PASS</a></li>
+      <li><a href="map.html"> MAP</a></li>
+      <li><a href="gamemodes.html"> GAME MODES</a></li>
+      <li><a href="community.html"> COMMUNITY</a></li>
+      <li><a href="patchnotes.html"> PATCH NOTES</a></li>
+      <li><a href="about.html"> ABOUT</a></li>
+    </ul>
+    <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()"> Dark Mode</div>
+    <div class="system-toggle" id="systemToggle" onclick="toggleSystemTheme()">System Off</div>
+  </nav>
+  <div class="content-headbar" id="headbar"><span>Hobby Royale</span></div>
+
+  <!-- Opening Visual -->
+  <section class="opening-visual" id="opening-visual">
+    <video class="bg-video" autoplay loop muted id="mainVideo" src="assets/videos/C0.mp4"></video>
+    <div class="headline-container">
+      <!-- ADDED ID FOR 5-CLICK TRIGGER -->
+      <h1 id="mainTitle">HOBBY ROYALE</h1>
+      <h2>Choose your hobby!!!</h2>
+    </div>
+  </section>
+
+  <!-- Announcement Section -->
+  <section id="announcement">
+    <div id="announcement-inner">
+      <div id="announcement-text">
+        <h2>
+          <span id="dream">Dream</span>. <span id="dominate">Dominate</span>.
+        </h2>
+        <p id="descLines" style="margin-top:1rem;">
+          "Hobby Royale is the game all about your passions! Build, battle, and conquer using your real-life hobbies as your skills. Whether you're a gaming legend, a creative mastermind, or a sports fanatic, your interests shape your strategy. Craft your path, outplay rivals, and claim the ultimate win!
+        </p>
+      </div>
+      <div id="announcement-image">
+        <img src="assets/images/announcement.jpg" alt="Announcement Placeholder">
+      </div>
+    </div>
+  </section>
+
+  <!-- Critics Section -->
+  <section id="critics">
+    <div class="critic-item">
+      <div class="critic-logo"><img src="assets/images/betacritic.png" alt="Betacritic" style="width:80px;"></div>
+      <div class="critic-content">
+        <h3>Must-Play (Betacritic)</h3>
+        <p>Placeholder text: "One of the best experiences out there!"</p>
+      </div>
+    </div>
+    <div class="critic-item">
+      <div class="critic-logo"><img src="assets/images/igc.png" alt="IGC" style="width:80px;"></div>
+      <div class="critic-content">
+        <h3>IGC: 9.5/10</h3>
+        <p>Placeholder text: "A brilliant mix of creativity and competition."</p>
+      </div>
+    </div>
+    <div class="critic-item">
+      <div class="critic-logo"><img src="assets/images/fictionalreview.png" alt="Fictional Review" style="width:80px;"></div>
+      <div class="critic-content">
+        <h3>Fictive Reviewer: 9/10</h3>
+        <p>Placeholder text: "An innovative take on your daily hobbies turned into epic battles!"</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Discover -->
+  <div id="discover" class="bounce"> DISCOVER MORE </div>
+
+  <!-- Additional sections -->
+  <section id="battle-pass" class="left-anim">
+    <div class="section-box">
+      <img src="assets/images/battlepass.jpg" alt="Battle Pass Placeholder">
+      <h2>Battle Pass</h2>
+      <p>Placeholder text describing your Battle Pass content. Replace or edit as needed.</p>
+    </div>
+  </section>
+  <section id="map" class="right-anim">
+    <div class="section-box">
+      <img src="assets/images/map.jpg" alt="Map Placeholder">
+      <h2>Map</h2>
+      <p>Placeholder text about the map. You can replace or edit as needed.</p>
+    </div>
+  </section>
+  <section id="game-modes" class="left-anim">
+    <div class="section-box">
+      <img src="assets/images/gamemodes.jpg" alt="Game Modes Placeholder">
+      <h2>Game Modes</h2>
+      <p>Placeholder text about game modes. You can replace or edit as needed.</p>
+    </div>
+  </section>
+  <section id="community" class="right-anim">
+    <div class="section-box">
+      <img src="assets/images/community.jpg" alt="Community Placeholder">
+      <h2>Community</h2>
+      <p>Placeholder text about the community. You can replace or edit as needed.</p>
+    </div>
+  </section>
+  <section id="patch-notes" class="left-anim">
+    <div class="section-box">
+      <img src="assets/images/patchnotes.jpg" alt="Patch Notes Placeholder">
+      <h2>Patch Notes</h2>
+      <p>Placeholder text about patch notes. You can replace or edit as needed.</p>
+    </div>
+  </section>
+
+  <!-- Bottom Bar -->
+  <div class="bottom-bar" id="bottom-bar">
+    <div class="coming-text">Coming 20XX to a system near you</div>
+    <div>© 2025 Purple Lunchbox Productions</div>
+  </div>
+
+  <script>
+    let systemModeActive = false;
+    const toggleBtn = document.getElementById('toggleButton');
+    const dimscreen = document.getElementById('dimscreen');
+    const sidebar = document.getElementById('sidebar');
+    const headbarEl = document.getElementById('headbar');
+    const bottomBarEl = document.getElementById('bottom-bar');
+    const themeToggle = document.getElementById('themeToggle');
+    const systemToggleBtn = document.getElementById('systemToggle');
+    const mainVideo = document.getElementById('mainVideo');
+
+    /* NEW: 5-click Easter Egg on the main title */
+    let clickCount = 0;
+    const mainTitle = document.getElementById('mainTitle');
+    mainTitle.addEventListener('click', () => {
+      clickCount++;
+      if(clickCount >= 5) {
+        // Redirect to the hidden profile creation page
+        window.location.href = "profilecreation.html";
+      }
+    });
+
+    function toggleSidebar(){
+      sidebar.classList.toggle('active');
+      toggleBtn.classList.toggle('active');
+      dimscreen.classList.toggle('active');
+      if(document.body.classList.contains('light-mode')){
+        toggleBtn.querySelectorAll('div').forEach(d => { d.style.background = '#000'; });
+      } else {
+        toggleBtn.querySelectorAll('div').forEach(d => { d.style.background = '#fff'; });
+      }
+    }
+    function toggleTheme(){
+      if(systemModeActive) return;
+      document.body.classList.toggle('light-mode');
+      if(document.body.classList.contains('light-mode')){
+        themeToggle.textContent = ' Light Mode';
+        document.body.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-light');
+        toggleBtn.querySelectorAll('div').forEach(d => d.style.background = '#000');
+      } else {
+        themeToggle.textContent = ' Dark Mode';
+        document.body.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-dark');
+        toggleBtn.querySelectorAll('div').forEach(d => d.style.background = '#fff');
+      }
+    }
+    function toggleSystemTheme(){
+      systemModeActive = !systemModeActive;
+      if(systemModeActive){
+        systemToggleBtn.classList.add('active');
+        systemToggleBtn.textContent = 'System On';
+        themeToggle.style.opacity = '0.5';
+        themeToggle.style.pointerEvents = 'none';
+        handleSystemTheme();
+      } else {
+        systemToggleBtn.classList.remove('active');
+        systemToggleBtn.textContent = 'System Off';
+        themeToggle.style.opacity = '1';
+        themeToggle.style.pointerEvents = 'auto';
+      }
+    }
+    function handleSystemTheme(){
+      if(!systemModeActive) return;
+      let mq = window.matchMedia('(prefers-color-scheme: dark)');
+      setAutoTheme(mq.matches);
+      mq.onchange = e => { if(systemModeActive){ setAutoTheme(e.matches); } };
+    }
+    function setAutoTheme(isDark){
+      if(isDark){
+        document.body.classList.remove('light-mode');
+        themeToggle.textContent = 'System:  Dark Mode';
+        toggleBtn.querySelectorAll('div').forEach(d => d.style.background = '#fff');
+      } else {
+        document.body.classList.add('light-mode');
+        themeToggle.textContent = 'System:  Light Mode';
+        toggleBtn.querySelectorAll('div').forEach(d => d.style.background = '#000');
+      }
+    }
+    window.onresize = adjustVideo;
+    function adjustVideo(){
+      mainVideo.style.position = 'fixed';
+      mainVideo.style.top = 0;
+      mainVideo.style.left = 0;
+      mainVideo.style.width = '100%';
+      mainVideo.style.height = '100%';
+      mainVideo.style.objectFit = 'cover';
+    }
+    window.onscroll = function(){
+      const firstSec = document.getElementById('opening-visual').getBoundingClientRect();
+      if(firstSec.bottom <= 0){
+        headbarEl.classList.add('show');
+        mainVideo.style.filter = 'blur(3px) grayscale(60%)';
+      } else {
+        headbarEl.classList.remove('show');
+        mainVideo.style.filter = 'none';
+      }
+      const docHeight = document.documentElement.scrollHeight;
+      const winHeight = window.innerHeight;
+      const scrolled = window.scrollY + winHeight;
+      if(scrolled >= docHeight){
+        bottomBarEl.classList.add('show');
+      } else {
+        bottomBarEl.classList.remove('show');
+      }
+      fadeInSections();
+      handleAnnouncementSection();
+      handleCritics();
+    };
+    function fadeInSections(){
+      const secs = document.querySelectorAll('section');
+      secs.forEach(sec => {
+        const rect = sec.getBoundingClientRect();
+        if(rect.top < window.innerHeight){
+          sec.classList.add('visible');
+        } else {
+          sec.classList.remove('visible');
+        }
+      });
+    }
+    function handleAnnouncementSection(){
+      const ann = document.getElementById('announcement');
+      const annRect = ann.getBoundingClientRect();
+      const textEl = document.getElementById('announcement-text');
+      const descEl = document.getElementById('descLines');
+      const imageEl = document.getElementById('announcement-image');
+      if(annRect.top < window.innerHeight && annRect.bottom > 0){
+        textEl.style.animation = 'dreamTextIn 0.8s forwards';
+        descEl.style.animation = 'linesIn 0.8s forwards 0.4s';
+        imageEl.style.animation = 'dreamImageIn 0.8s forwards 0.2s';
+      } else {
+        textEl.style.animation = '';
+        descEl.style.animation = '';
+        imageEl.style.animation = '';
+        textEl.style.opacity = 0;
+        descEl.style.opacity = 0;
+        imageEl.style.opacity = 0;
+      }
+    }
+    function handleCritics(){
+      const criticsSec = document.getElementById('critics');
+      const rect = criticsSec.getBoundingClientRect();
+      const items = criticsSec.querySelectorAll('.critic-item');
+      if(rect.top < window.innerHeight && rect.bottom > 0){
+        items.forEach((it, index) => {
+          it.style.animation = `criticsIn 0.8s forwards ${0.2*(index+1)}s`;
+        });
+      } else {
+        items.forEach(it => {
+          it.style.animation = '';
+          it.style.opacity = 0;
+          it.style.transform = 'translateY(100px)';
+        });
+      }
+    }
+    const discover = document.getElementById('discover');
+    discover.addEventListener('mouseover', () => { discover.classList.add('bounce'); });
+    discover.addEventListener('mouseleave', () => { discover.classList.remove('bounce'); });
+    function main(){
+      adjustVideo();
+      fadeInSections();
+      handleSystemTheme();
+    }
+    main();
+  </script>
+  <!-- Keyframes for announcement animations -->
+  <style>
+    @keyframes dreamTextIn {
+      from { opacity: 0; transform: translateX(-50px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes linesIn {
+      from { opacity: 0; transform: translateX(-50px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes dreamImageIn {
+      from { opacity: 0; transform: translateX(50px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+  </style>
+</body>
+</html>
