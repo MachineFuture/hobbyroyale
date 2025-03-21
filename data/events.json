@@ -1,0 +1,32 @@
+[
+  {
+    "bgImage": "assets/eventsImages/event_train.jpg",
+    "title": "Train Fest Marathon",
+    "shortDesc": "A 24-hour event for Railway Enthusiasts.",
+    "longDesc": "Join us for a full day of train mania! Explore hidden lines, complete unique challenges, and earn exclusive Train Otaku badges."
+  },
+  {
+    "bgImage": "assets/eventsImages/event_coaster.jpg",
+    "title": "Coaster Crazy Weekend",
+    "shortDesc": "Ride the loops, compete for fastest times.",
+    "longDesc": "Millennium Force time trials, special speed buffs, and double XP for Coaster Thoosies. Prizes for top 3 times!"
+  },
+  {
+    "bgImage": "assets/eventsImages/event_museum.jpg",
+    "title": "Retro Console Showdown",
+    "shortDesc": "Collect and battle with classic hardware.",
+    "longDesc": "A special tournament for Console Collectors—use your vintage gear for unique power-ups. Exclusive museum passes up for grabs!"
+  },
+  {
+    "bgImage": "assets/eventsImages/event_artist.jpg",
+    "title": "Artist Collab Jam",
+    "shortDesc": "Team up with other artists to create giant murals.",
+    "longDesc": "Share your creativity in a 48-hour art marathon. Vote for the best collaborative mural. Winners get a special in-game brush tool!"
+  },
+  {
+    "bgImage": "assets/eventsImages/event_code.jpg",
+    "title": "Hackathon 2077",
+    "shortDesc": "Coders unite to push the game to its limits.",
+    "longDesc": "Invent your own shortcuts, macros, or mini-scripts. Just don’t break the server again! Top 5 coders earn the 'Legendary Debugger' title."
+  }
+]

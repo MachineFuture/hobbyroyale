@@ -1,0 +1,13 @@
+[
+  { "username": "TrainYapper", "hobby": "Railway Enthusiast", "wins": 542 },
+  { "username": "SplatChampion", "hobby": "Gamer", "wins": 580 },
+  { "username": "BonsaiArtist", "hobby": "Artist", "wins": 430 },
+  { "username": "MechEngineer808", "hobby": "Engineer", "wins": 670 },
+  { "username": "PS2Nostalgia", "hobby": "Console Collector", "wins": 610 },
+  { "username": "NunchukMaster", "hobby": "Console Gamer", "wins": 599 },
+  { "username": "MemerEx", "hobby": "PC Enthusiast", "wins": 300 },
+  { "username": "MagmaRedstone", "hobby": "Redstone Engineer", "wins": 310 },
+  { "username": "WeCoast", "hobby": "Coaster Thoosie", "wins": 355 },
+  { "username": "OmegaArtist", "hobby": "Artist", "wins": 420 },
+  { "username": "BoxCubed", "hobby": "Console Collector", "wins": 500 }
+]

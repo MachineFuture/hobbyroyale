@@ -1,0 +1,13 @@
+[
+  { "name": "Gamer", "power": 1456789 },
+  { "name": "Artist", "power": 999888 },
+  { "name": "Railway Enthusiast (Train Otaku)", "power": 2000000 },
+  { "name": "Console Collector", "power": 2500000 },
+  { "name": "Coaster Enthusiast", "power": 1423456 },
+  { "name": "Coaster Thoosie", "power": 1298765 },
+  { "name": "Archivist", "power": 1105432 },
+  { "name": "PC Enthusiast", "power": 1199999 },
+  { "name": "Redstone Engineer", "power": 1012345 },
+  { "name": "Coder", "power": 1354321 },
+  { "name": "Collector and Console Gamer", "power": 2123456 }
+]

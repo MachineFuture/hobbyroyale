@@ -1,0 +1,12 @@
+[
+  { "username": "KillerBites", "hobby": "PC Enthusiast", "kills": 999 },
+  { "username": "SneakNinja", "hobby": "Gamer", "kills": 1050 },
+  { "username": "MineDestroyer", "hobby": "Redstone Engineer", "kills": 890 },
+  { "username": "LolShots", "hobby": "Gamer", "kills": 1200 },
+  { "username": "CubeyDeath", "hobby": "Console Collector", "kills": 999 },
+  { "username": "TrainDerail", "hobby": "Railway Enthusiast", "kills": 950 },
+  { "username": "ScreamCoaster", "hobby": "Coaster Enthusiast", "kills": 770 },
+  { "username": "WiiAreFamily", "hobby": "Console Gamer", "kills": 600 },
+  { "username": "ScribbleKills", "hobby": "Artist", "kills": 575 },
+  { "username": "CmdBlockOP", "hobby": "Command Block Master", "kills": 830 }
+]
