@@ -18,6 +18,12 @@
       --bg-light: #f3f2f5;
       --txt-dark: #fff;
       --txt-light: #000;
+      /* Overlay colors that adapt to theme */
+      --overlay-dark: rgba(0,0,0,0.3);
+      --overlay-light: rgba(0,0,0,0.4);
+      /* Overlay text background */
+      --overlayText-bg-dark: rgba(0,0,0,0.5);
+      --overlayText-bg-light: rgba(255,255,255,0.7);
     }
     * {
       margin: 0;
@@ -26,44 +32,80 @@
       font-family: 'NintendoFont', sans-serif;
     }
     body {
+      /* Removed the old padding-bottom:200px */
       background-color: var(--bg-dark);
       color: var(--txt-dark);
       overflow-x: hidden;
       transition: background-color 0.3s, color 0.3s;
-      padding-bottom: 200px; /* Extra space so bottom bar won't cover content */
     }
     body.light-mode {
       background-color: var(--bg-light);
       color: var(--txt-light);
     }
-    /* DIM OVERLAY – bumped high for sidebar */
+
+    /* Media query for mobile – make main tabs big so they match sub-tab size */
+    @media(max-width:600px) {
+      .map-tabs {
+        flex-direction: column;
+        align-items: center;
+      }
+      .map-tab {
+        width: 100% !important;  /* ensures full width on mobile */
+        max-width: 100% !important;
+        height: 380px; /* bigger tab height for mobile */
+      }
+      .tab-title {
+        font-size: 3rem; /* bigger text on mobile */
+      }
+      .tab-subtitle {
+        font-size: 1.5rem;
+      }
+      .sub-block {
+        height: 380px; /* match main tabs on mobile */
+      }
+      .sub-block-text {
+        font-size: 2.2rem;
+      }
+      .overlay-title {
+        font-size: 3rem;
+      }
+      .overlay-subtitle {
+        font-size: 1.5rem;
+      }
+      .overlay-desc {
+        font-size: 1.2rem;
+      }
+      /* Make overlay content wider on mobile */
+      .overlay-content {
+        width: 90% !important;
+      }
+    }
+
+    /* DIM OVERLAY – for sidebar – raised above overlay below */
     .dimscreen {
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
       background-color: rgba(0,0,0,0.5);
-      opacity: 0;
-      pointer-events: none;
+      opacity: 0; pointer-events: none;
       transition: opacity 0.4s;
-      z-index: 3000;
+      z-index: 4000; 
     }
     .dimscreen.active {
-      opacity: 1;
-      pointer-events: auto;
+      opacity: 1; pointer-events: auto;
     }
-    /* TOGGLE BUTTON – highest layer */
+
+    /* TOGGLE BUTTON – on top */
     .toggle-btn {
       position: fixed;
       top: 1rem; left: 1rem;
       width: 30px; height: 25px;
-      cursor: pointer;
-      z-index: 3100;
+      cursor: pointer; 
+      z-index: 4100; 
     }
     .toggle-btn div {
-      height: 3px;
-      background: #fff;
-      margin: 4px;
-      transition: 0.4s;
+      height: 3px; background: #fff;
+      margin: 4px; transition: 0.4s;
       transform-origin: center;
     }
     .toggle-btn.active .bar1 {
@@ -75,7 +117,8 @@
     .toggle-btn.active .bar3 {
       transform: rotate(45deg) translate(-5px, -5px);
     }
-    /* SIDEBAR – same as patchnotes */
+
+    /* SIDEBAR – raised above overlay */
     .sidebar {
       position: fixed;
       top: 0; left: -250px;
@@ -83,23 +126,18 @@
       background-color: var(--sidebar-dark);
       padding: 1rem;
       transition: left 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
-      z-index: 3000;
+      z-index: 4050; 
     }
     body.light-mode .sidebar {
       background-color: var(--sidebar-light);
     }
-    .sidebar.active {
-      left: 0;
-    }
+    .sidebar.active { left: 0; }
     .sidebar ul {
-      list-style: none;
-      margin-top: 2rem;
-      padding: 0;
+      list-style: none; margin-top: 2rem; padding: 0;
     }
     .sidebar ul li {
       margin-bottom: 0.6rem;
-      opacity: 0;
-      transform: translateX(-20px);
+      opacity: 0; transform: translateX(-20px);
     }
     .sidebar.active ul li {
       animation: appear 0.4s forwards;
@@ -108,118 +146,90 @@
       to { opacity: 1; transform: translateX(0); }
     }
     .sidebar ul li a {
-      text-decoration: none;
-      font-size: 1.2rem;
-      color: inherit;
-      transition: background-color 0.3s;
-      padding: 0.2rem 0.3rem;
-      display: block;
+      text-decoration: none; font-size: 1.2rem;
+      color: inherit; transition: background-color 0.3s;
+      padding: 0.2rem 0.3rem; display: block;
     }
     .sidebar ul li a:hover {
       background-color: rgba(255,255,255,0.3);
     }
     .sidebar ul li a.current {
-      background-color: rgba(255,255,255,0.5);
-      color: #000;
+      background-color: rgba(255,255,255,0.5); color: #000;
       border-radius: 5px;
     }
     body.light-mode .sidebar ul li a.current {
-      background-color: rgba(0,0,0,0.3);
-      color: #fff;
+      background-color: rgba(0,0,0,0.3); color: #fff;
     }
     .theme-toggle {
-      position: absolute;
-      bottom: 4.5rem;
-      left: 1rem;
-      cursor: pointer;
-      border: 1px solid #fff;
-      padding: 0.3rem 0.5rem;
-      border-radius: 5px;
-      z-index: 3000;
+      position: absolute; bottom: 4.5rem; left: 1rem;
+      cursor: pointer; border: 1px solid #fff;
+      padding: 0.3rem 0.5rem; border-radius: 5px;
+      z-index: 4050;
     }
     .system-toggle {
-      position: absolute;
-      bottom: 1rem;
-      left: 1rem;
-      font-size: 0.9rem;
-      border: 1px dashed #fff;
-      padding: 0.3rem;
-      margin-top: 1rem;
-      transition: 0.3s;
-      cursor: pointer;
-      z-index: 3000;
+      position: absolute; bottom: 1rem; left: 1rem;
+      font-size: 0.9rem; border: 1px dashed #fff;
+      padding: 0.3rem; margin-top: 1rem;
+      transition: 0.3s; cursor: pointer;
+      z-index: 4050;
     }
     .system-toggle.active {
       border: 1px solid #fff;
       background: rgba(255,255,255,0.2);
     }
-    /* HEADBAR (added) */
+
+    /* HEADBAR */
     .content-headbar {
       position: fixed;
-      top: -60px;
-      left: 0;
-      width: 100%;
-      height: 60px;
+      top: -60px; left: 0;
+      width: 100%; height: 60px;
       background-color: var(--sidebar-dark);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: top 0.4s;
-      z-index: 2900;
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      transition: top 0.4s; z-index: 2900;
     }
     body.light-mode .content-headbar {
       background-color: var(--sidebar-light);
       color: #000;
     }
-    .content-headbar.show {
-      top: 0;
-    }
-    /* BOTTOM BAR (added) */
+    .content-headbar.show { top: 0; }
+
+    /* BOTTOM BAR */
     .bottom-bar {
       position: fixed;
-      bottom: -70px;
-      left: 0;
-      width: 100%;
-      height: 70px;
+      bottom: -70px; left: 0;
+      width: 100%; height: 70px;
       background-color: var(--sidebar-dark);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: bottom 0.4s;
-      z-index: 2900;
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      transition: bottom 0.4s; z-index: 2900;
     }
     body.light-mode .bottom-bar {
-      background-color: var(--sidebar-light);
-      color: #000;
+      background-color: var(--sidebar-light); color: #000;
     }
-    .bottom-bar.show {
-      bottom: 0;
-    }
-    /* HERO SECTION – using gamemodes-hero.png for consistency with gamemodes page */
+    .bottom-bar.show { bottom: 0; }
+
+    /* HERO SECTION */
     .hero-section {
-      position: relative;
-      width: 100%;
-      height: 100vh;
+      position: relative; width: 100%; height: 100vh;
       background: url('assets/images/gamemodes-hero.png') center center/cover no-repeat fixed;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
     }
     .hero-section h1 {
-      font-size: 5rem;
-      color: #fff;
-      text-transform: uppercase;
-      background: rgba(0,0,0,0.5);
-      padding: 1rem 2rem;
+      font-size: 5rem; color: #fff; text-transform: uppercase;
+      background: rgba(0,0,0,0.5); padding: 1rem 2rem;
       border-radius: 10px;
     }
+
     /* MAIN CONTENT */
     .main-content {
-      width: 90%;
-      max-width: 1200px;
+      width: 90%; max-width: 1200px;
       margin: 2rem auto;
+      max-height: 100vh; 
+      overflow: hidden; 
+      transition: max-height 0.4s;
+    }
+    .main-content.active { 
+      max-height: none; 
+      overflow: visible;
     }
     .mode-selection-title {
       text-align: center;
@@ -227,152 +237,205 @@
       margin-bottom: 1rem;
       font-weight: bold;
     }
+
     /* MAP TABS */
     .map-tabs {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-    @media(max-width:600px) {
-      .map-tabs {
-        flex-direction: column;
-        align-items: center;
-      }
+      display: flex; justify-content: center;
+      gap: 1rem; margin-bottom: 2rem;
     }
     .map-tab {
-      flex: 1;
-      max-width: 45%;
-      background: var(--sidebar-dark);
-      color: var(--txt-dark);
-      text-align: center;
-      padding: 1rem;
-      border: 2px solid transparent;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: border 0.3s, transform 0.3s cubic-bezier(0.68,-0.55,0.27,1.55);
-      /* NEW: ensure background image is shown */
-      background-size: cover;
+      position: relative;
+      flex: 1; max-width: 45%;
+      height: 300px;
+      background-size: cover; 
       background-position: center;
+      background-repeat: no-repeat;
+      color: #fff; text-align: center;
+      border: 2px solid transparent; border-radius: 10px;
+      cursor: pointer; transition: border 0.3s, transform 0.3s;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      overflow: hidden;
     }
+    .map-tab[style*="background-image: url('');"] {
+      background-color: var(--sidebar-dark);
+    }
+    .map-tab::before {
+      content: "";
+      position: absolute; inset: 0;
+      background: var(--overlay-dark);
+      pointer-events: none;
+      z-index: 1; transition: background 0.3s;
+    }
+    body.light-mode .map-tab::before {
+      background: var(--overlay-light);
+    }
+    .map-tab:hover { transform: scale(1.03); }
     .map-tab.active {
       border-color: var(--txt-dark);
-      transform: scale(1.02);
+      transform: scale(1.05);
     }
-    .map-tab .tab-title {
-      font-size: 2.5rem; /* Increased from 1.5rem to match gamemodes style */
-      font-weight: bold;
-      margin-bottom: 0.5rem;
+    body.light-mode .map-tab.active {
+      border-color: var(--txt-light);
     }
-    .map-tab .tab-subtitle {
-      font-size: 1.2rem;
-      opacity: 0.8;
+    .tab-title {
+      font-size: 2.5rem; font-weight: bold;
+      margin-bottom: 0.3rem; text-transform: uppercase;
+      position: relative; z-index: 2;
     }
-    /* CONTENT CONTAINERS for each mode */
+    .tab-subtitle {
+      font-size: 1.2rem; opacity: 0.85;
+      position: relative; z-index: 2;
+    }
+
+    /* MAP CONTENT containers */
     .map-content {
       display: none;
       opacity: 0;
-      transition: opacity 0.5s cubic-bezier(0.68,-0.55,0.27,1.55);
+      transition: opacity 0.5s ease;
     }
     .map-content.active {
       display: block;
       opacity: 1;
     }
-    /* Sub-tabs for detailed maps */
-    .sub-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
+
+    /* SUB-TAB BLOCKS */
+    .sub-tabs-blocks {
+      display: flex; flex-direction: column;
+      gap: 1rem; margin-bottom: 2rem;
+      opacity: 0;
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.8s cubic-bezier(0.68,-0.55,0.265,1.55), opacity 0.8s;
     }
-    .sub-tab {
-      padding: 0.8rem 1rem;
-      background: rgba(0,0,0,0.6);
-      color: #fff;
-      border-radius: 5px;
+    .sub-tabs-blocks.show {
+      opacity: 1;
+      animation: fixMaxHeight 0.1s forwards 0.8s;
+    }
+    @keyframes fixMaxHeight {
+      to { max-height: 9999px; }
+    }
+    .sub-block {
+      position: relative;
+      width: 100%; height: 250px;
+      background-size: cover; 
+      background-position: center;
+      background-repeat: no-repeat;
+      border-radius: 5px; overflow: hidden;
       cursor: pointer;
-      transition: background 0.3s ease;
-      font-size: 1.2rem; /* increased font-size */
     }
-    body.light-mode .sub-tab {
-      background: rgba(255,255,255,0.7);
+    .left-anim {
+      opacity: 0; 
+      transform: translateX(-100px); 
+      transition: transform 0.8s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.8s;
+    }
+    .right-anim {
+      opacity: 0; 
+      transform: translateX(100px);
+      transition: transform 0.8s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.8s;
+    }
+    .visible {
+      opacity: 1 !important; 
+      transform: translateX(0) !important;
+    }
+
+    .sub-block-text {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      color: #fff;
+      text-transform: uppercase;
+      font-size: 2rem;
+      background: rgba(0,0,0,0.4);
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      z-index: 2;
+    }
+    body.light-mode .sub-block-text {
+      background: rgba(0,0,0,0.3); color: #fff;
+    }
+    .sub-block::before {
+      content: "";
+      position: absolute; inset: 0;
+      background: var(--overlay-dark);
+      pointer-events: none;
+      z-index: 1;
+      transition: background 0.3s;
+    }
+    body.light-mode .sub-block::before {
+      background: var(--overlay-light);
+    }
+
+    /* OVERLAY for sub-block details */
+    .mode-overlay {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      /* Removed background: rgba(255,255,255,0.8); so we don't override the image */
+      background: rgba(0,0,0,0.8); 
+      color: #fff;
+      z-index: 3950; 
+      opacity: 0; pointer-events: none;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transform: translateY(100%);
+    }
+    /* Use a brightness filter in light mode, so the same background image is used */
+    body.light-mode .mode-overlay {
+      filter: brightness(1.2);
       color: #000;
     }
-    .sub-tab.active {
-      box-shadow: 0 0 10px var(--txt-dark);
-    }
-    /* Sub-content for detailed info */
-    .sub-content {
-      display: none;
-      padding: 1rem;
-      background: rgba(0,0,0,0.2);
-      border-radius: 5px;
-      animation: fadeIn 0.5s ease-out;
-    }
-    body.light-mode .sub-content {
-      background: rgba(255,255,255,0.2);
-    }
-    .sub-content.active {
-      display: block;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    /* OVERLAY FOR SUB-TAB DETAILS */
-    .mode-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      z-index: 2900;
-      opacity: 0;
-      pointer-events: none;
-      transform: scale(0.8) translateY(50px);
-      transition: transform 0.4s cubic-bezier(0.87,0,0.13,1), opacity 0.4s;
-    }
     .mode-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-      transform: scale(1) translateY(0);
+      opacity: 1; pointer-events: auto;
+      animation: overlaySlideUp 0.5s cubic-bezier(0.68,-0.55,0.27,1.55) forwards;
     }
+    .mode-overlay.closing {
+      animation: overlaySlideDown 0.5s cubic-bezier(0.68,-0.55,0.27,1.55) forwards;
+    }
+    @keyframes overlaySlideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes overlaySlideDown {
+      from { transform: translateY(0); opacity: 1; }
+      to { transform: translateY(100%); opacity: 0; }
+    }
+
     .overlay-content {
-      position: relative;
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 2;
-      padding: 2rem;
+      padding: 1rem 1.5rem;
+      background-color: var(--overlayText-bg-dark);
+      border-radius: 5px;
       text-align: center;
     }
+    body.light-mode .overlay-content {
+      background-color: var(--overlayText-bg-light);
+      color: #000;
+    }
     .overlay-title {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
+      font-size: 2.5rem; margin-bottom: 0.5rem;
+      text-transform: uppercase;
     }
     .overlay-subtitle {
-      font-size: 1.2rem;
-      margin-bottom: 1rem;
+      font-size: 1.2rem; margin-bottom: 0.5rem;
       opacity: 0.9;
     }
     .overlay-desc {
-      font-size: 1rem;
-      line-height: 1.4;
+      font-size: 1rem; line-height: 1.4;
     }
     .close-btn {
-      position: absolute;
-      top: 2rem;
-      right: 2rem;
-      font-size: 1.2rem;
-      cursor: pointer;
+      position: absolute; top: 2rem; right: 2rem;
+      font-size: 1.2rem; cursor: pointer;
       background: rgba(255,255,255,0.2);
-      padding: 0.5rem 1rem;
-      border-radius: 5px;
-      z-index: 3;
-      transition: background 0.3s;
+      padding: 0.5rem 1rem; border-radius: 5px;
+      z-index: 3; transition: background 0.3s;
     }
     body.light-mode .close-btn {
-      background: rgba(0,0,0,0.2);
-      color: #000;
+      background: rgba(0,0,0,0.2); color: #000; border: 1px solid #000;
     }
     .close-btn:hover {
       background: rgba(255,255,255,0.3);
@@ -380,10 +443,8 @@
     body.light-mode .close-btn:hover {
       background: rgba(0,0,0,0.3);
     }
-    /* Extra space at bottom */
-    .extra-space {
-      height: 200px;
-    }
+
+    .extra-space { height: 0px; /* Start at 0; will adjust dynamically */ }
   </style>
 </head>
 <body>
@@ -394,8 +455,8 @@
     <div class="bar3"></div>
   </div>
   <div class="dimscreen" id="dimscreen"></div>
-  
-  <!-- Sidebar (same as patchnotes) -->
+
+  <!-- Sidebar -->
   <nav class="sidebar" id="sidebar">
     <ul style="margin-top:2rem; margin-bottom:1rem;">
       <li><a href="index.html"> HOME</a></li>
@@ -409,18 +470,19 @@
     <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()"> Dark Mode</div>
     <div class="system-toggle" id="systemToggle" onclick="toggleSystemTheme()">System Off</div>
   </nav>
-  
-  <!-- HEADBAR (added) -->
+
+  <!-- HEADBAR -->
   <div class="content-headbar" id="headbar"><span>MAP</span></div>
-  
+
   <!-- HERO SECTION -->
   <section class="hero-section">
     <h1>MAP</h1>
   </section>
-  
+
   <!-- MAIN CONTENT -->
-  <main class="main-content">
+  <main class="main-content" id="mainContent">
     <div class="mode-selection-title">Pick a mode that fits your playstyle:</div>
+    <!-- Two big tabs side by side -->
     <div class="map-tabs">
       <div class="map-tab" id="deathmatchTab" style="background-image: url('assets/images/deathmatch-maps.jpg');">
         <div class="tab-title">Deathmatch Maps</div>
@@ -431,52 +493,37 @@
         <div class="tab-subtitle">A chaotic clash of everything</div>
       </div>
     </div>
+
     <!-- Deathmatch Content -->
     <section id="deathmatchContent" class="map-content">
-      <div class="sub-tabs">
-        <div class="sub-tab" data-index="0">Japan 2017</div>
-        <div class="sub-tab" data-index="1">Nintendo Museum</div>
-        <div class="sub-tab" data-index="2">Windows Me Desktop</div>
-        <div class="sub-tab" data-index="3">Cedar Point</div>
-        <div class="sub-tab" data-index="4">Survival Multiplayer Server</div>
-      </div>
-      <div class="sub-details-container">
-        <p style="padding:1rem; text-align:center;">Select a map to view details.</p>
-      </div>
+      <div class="sub-tabs-blocks" id="deathmatchBlocks"></div>
     </section>
+
     <!-- Battle Royale Content -->
     <section id="battleroyaleContent" class="map-content">
-      <div class="sub-tabs">
-        <div class="sub-tab" data-index="0">Katsuta Station</div>
-        <div class="sub-tab" data-index="1">Life Inn Katsuta</div>
-        <div class="sub-tab" data-index="2">Hitachinaka Cultural Center</div>
-        <div class="sub-tab" data-index="3">Katsuta Central</div>
-        <div class="sub-tab" data-index="4">Katsuta Outskirts</div>
-      </div>
-      <div class="sub-details-container">
-        <p style="padding:1rem; text-align:center;">Select an area to view details.</p>
-      </div>
+      <div class="sub-tabs-blocks" id="battleroyaleBlocks"></div>
     </section>
+
     <div class="extra-space"></div>
   </main>
-  
-  <!-- OVERLAY FOR SUB-TAB DETAILS -->
+
+  <!-- OVERLAY -->
   <div class="mode-overlay" id="modeOverlay">
-    <div class="overlay-content">
+    <div class="overlay-content" id="overlayContent">
       <h2 class="overlay-title" id="overlayTitle"></h2>
       <div class="overlay-subtitle" id="overlaySubtitle"></div>
       <div class="overlay-desc" id="overlayDesc"></div>
     </div>
     <div class="close-btn" id="overlayCloseBtn"> Close</div>
   </div>
-  
-  <!-- BOTTOM BAR (added) -->
+
+  <!-- BOTTOM BAR -->
   <div class="bottom-bar" id="bottom-bar">
     <div>© 2025 Purple Lunchbox Productions</div>
   </div>
-  
+
   <script>
-    // Sidebar, theme, and scroll functions (same as before)
+    /* Existing sidebar & theme logic */
     let systemModeActive = false;
     const toggleBtn = document.getElementById('toggleButton');
     const dimscreen = document.getElementById('dimscreen');
@@ -485,15 +532,16 @@
     const systemToggleBtn = document.getElementById('systemToggle');
     const headbarEl = document.getElementById('headbar');
     const bottomBarEl = document.getElementById('bottom-bar');
+    const mainContent = document.getElementById('mainContent');
 
     function toggleSidebar(){
       sidebar.classList.toggle('active');
       toggleBtn.classList.toggle('active');
       dimscreen.classList.toggle('active');
       if(document.body.classList.contains('light-mode')){
-        toggleBtn.querySelectorAll('div').forEach(d => d.style.background = '#000');
+        toggleBtn.querySelectorAll('div').forEach(d => d.style.background='#000');
       } else {
-        toggleBtn.querySelectorAll('div').forEach(d => d.style.background = '#fff');
+        toggleBtn.querySelectorAll('div').forEach(d => d.style.background='#fff');
       }
     }
     window.toggleSidebar = toggleSidebar;
@@ -503,10 +551,10 @@
       document.body.classList.toggle('light-mode');
       if(document.body.classList.contains('light-mode')){
         themeToggle.textContent = ' Light Mode';
-        toggleBtn.querySelectorAll('div').forEach(d => d.style.background = '#000');
+        toggleBtn.querySelectorAll('div').forEach(d => d.style.background='#000');
       } else {
         themeToggle.textContent = ' Dark Mode';
-        toggleBtn.querySelectorAll('div').forEach(d => d.style.background = '#fff');
+        toggleBtn.querySelectorAll('div').forEach(d => d.style.background='#fff');
       }
     }
     function toggleSystemTheme(){
@@ -529,6 +577,7 @@
     window.onscroll = function(){
       handleHeadbar();
       handleBottomBar();
+      adjustExtraSpace();
     };
     function handleHeadbar(){
       const heroRect = document.querySelector('.hero-section').getBoundingClientRect();
@@ -536,6 +585,12 @@
         headbarEl.classList.add('show');
       } else {
         headbarEl.classList.remove('show');
+      }
+      // If hero is visible, collapse mainContent to hero height
+      if(heroRect.bottom > 0){
+        mainContent.style.maxHeight = "100vh";
+      } else {
+        mainContent.style.maxHeight = "none";
       }
     }
     function handleBottomBar(){
@@ -554,83 +609,165 @@
     const battleroyaleTab = document.getElementById('battleroyaleTab');
     const deathmatchContent = document.getElementById('deathmatchContent');
     const battleroyaleContent = document.getElementById('battleroyaleContent');
+    const deathmatchBlocks = document.getElementById('deathmatchBlocks');
+    const battleroyaleBlocks = document.getElementById('battleroyaleBlocks');
 
     function clearActiveMainTabs(){
       deathmatchTab.classList.remove('active');
       battleroyaleTab.classList.remove('active');
       deathmatchContent.classList.remove('active');
       battleroyaleContent.classList.remove('active');
+      deathmatchBlocks.classList.remove('show');
+      battleroyaleBlocks.classList.remove('show');
+      [...deathmatchBlocks.querySelectorAll('.sub-block'), ...battleroyaleBlocks.querySelectorAll('.sub-block')]
+        .forEach(sb => {
+          sb.classList.remove('left-anim','right-anim','visible');
+        });
     }
+
     deathmatchTab.addEventListener('click', () => {
       if(deathmatchTab.classList.contains('active')){
         clearActiveMainTabs();
+        mainContent.classList.remove('active');
       } else {
         clearActiveMainTabs();
         deathmatchTab.classList.add('active');
         deathmatchContent.classList.add('active');
+        mainContent.classList.add('active');
+        setTimeout(() => {
+          deathmatchBlocks.classList.add('show');
+          const subBlocks = deathmatchBlocks.querySelectorAll('.sub-block');
+          subBlocks.forEach((sb, i) => {
+            if(i % 2 === 0) sb.classList.add('left-anim');
+            else sb.classList.add('right-anim');
+            setTimeout(()=> sb.classList.add('visible'), i*150);
+          });
+          adjustExtraSpace();
+        }, 50);
       }
     });
+
     battleroyaleTab.addEventListener('click', () => {
       if(battleroyaleTab.classList.contains('active')){
         clearActiveMainTabs();
+        mainContent.classList.remove('active');
       } else {
         clearActiveMainTabs();
         battleroyaleTab.classList.add('active');
         battleroyaleContent.classList.add('active');
+        mainContent.classList.add('active');
+        setTimeout(() => {
+          battleroyaleBlocks.classList.add('show');
+          const subBlocks = battleroyaleBlocks.querySelectorAll('.sub-block');
+          subBlocks.forEach((sb, i) => {
+            if(i % 2 === 0) sb.classList.add('left-anim');
+            else sb.classList.add('right-anim');
+            setTimeout(()=> sb.classList.add('visible'), i*150);
+          });
+          adjustExtraSpace();
+        }, 50);
       }
     });
 
-    /* Sub-tabs overlay logic */
-    function attachSubTabOverlay(contentContainer, detailsArray) {
-      const subTabs = contentContainer.querySelectorAll('.sub-tab');
-      subTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          subTabs.forEach(t => t.classList.remove('active'));
-          tab.classList.add('active');
-          const index = tab.getAttribute('data-index');
-          const detail = detailsArray[index];
-          openOverlay(detail);
+    // Deathmatch data
+    const deathmatchData = [
+      { title: "Japan 2017", bg: "assets/images/deathmatch1.jpg", subtitle: "Classic Arena", desc: "Traditional architecture with dynamic weather for intense battles." },
+      { title: "Nintendo Museum", bg: "assets/images/deathmatch2.jpg", subtitle: "Exhibit Ambush", desc: "A labyrinth of exhibits challenging your tactical positioning." },
+      { title: "Windows Me Desktop", bg: "assets/images/deathmatch3.jpg", subtitle: "Digital Nostalgia", desc: "Quirky pixelated map where every icon counts." },
+      { title: "Cedar Point", bg: "assets/images/deathmatch4.jpg", subtitle: "Outdoor Battleground", desc: "Thrilling rides and scenic views test your strategy." },
+      { title: "Survival Multiplayer Server", bg: "assets/images/deathmatch5.jpg", subtitle: "Rugged Terrain", desc: "An unforgiving landscape rewarding clever survival tactics." }
+    ];
+    // Battle Royale data
+    const brData = [
+      { title: "Katsuta Station", bg: "assets/images/br1.jpg", subtitle: "Bustling Hub", desc: "A strategic transport hub with critical chokepoints." },
+      { title: "Life Inn Katsuta", bg: "assets/images/br2.jpg", subtitle: "Urban Maze", desc: "Iconic hotel with a maze-like layout for urban combat." },
+      { title: "Hitachinaka Cultural Center", bg: "assets/images/br3.jpg", subtitle: "Artistic Battleground", desc: "A venue steeped in tradition challenging your tactics." },
+      { title: "Katsuta Central", bg: "assets/images/br4.jpg", subtitle: "Urban Core", desc: "Dense structures demand precise close-quarters combat." },
+      { title: "Katsuta Outskirts", bg: "assets/images/br5.jpg", subtitle: "Open Fields", desc: "Expansive area requiring long-range strategy." }
+    ];
+
+    function renderSubBlocks(container, data) {
+      container.innerHTML = "";
+      data.forEach(item => {
+        const block = document.createElement('div');
+        block.className = "sub-block";
+        if(!item.bg) {
+          block.style.backgroundColor = "rgba(100,100,100,0.3)";
+        } else {
+          block.style.backgroundImage = `url('${item.bg}')`;
+        }
+        const txt = document.createElement('div');
+        txt.className = "sub-block-text";
+        txt.textContent = item.title;
+        block.appendChild(txt);
+        block.addEventListener('click', () => {
+          openOverlay(item);
         });
+        container.appendChild(block);
       });
     }
-    // Deathmatch details array
-    const deathmatchDetails = [
-      { title: "Japan 2017", subtitle: "Classic Arena", desc: "Traditional architecture with dynamic weather for intense battles.", bg: "assets/images/deathmatch1.jpg" },
-      { title: "Nintendo Museum", subtitle: "Exhibit Ambush", desc: "A labyrinth of exhibits challenging your tactical positioning.", bg: "assets/images/deathmatch2.jpg" },
-      { title: "Windows Me Desktop", subtitle: "Digital Nostalgia", desc: "Quirky pixelated map where every icon counts.", bg: "assets/images/deathmatch3.jpg" },
-      { title: "Cedar Point", subtitle: "Outdoor Battleground", desc: "Thrilling rides and scenic views test your strategy.", bg: "assets/images/deathmatch4.jpg" },
-      { title: "Survival Multiplayer Server", subtitle: "Rugged Terrain", desc: "An unforgiving landscape rewarding clever survival tactics.", bg: "assets/images/deathmatch5.jpg" }
-    ];
-    // Battle Royale details array
-    const battleroyaleDetails = [
-      { title: "Katsuta Station", subtitle: "Bustling Hub", desc: "A strategic transport hub with critical chokepoints.", bg: "assets/images/br1.jpg" },
-      { title: "Life Inn Katsuta", subtitle: "Urban Maze", desc: "Iconic hotel with a maze-like layout for urban combat.", bg: "assets/images/br2.jpg" },
-      { title: "Hitachinaka Cultural Center", subtitle: "Artistic Battleground", desc: "A venue steeped in tradition challenging your tactics.", bg: "assets/images/br3.jpg" },
-      { title: "Katsuta Central", subtitle: "Urban Core", desc: "Dense structures demand precise close-quarters combat.", bg: "assets/images/br4.jpg" },
-      { title: "Katsuta Outskirts", subtitle: "Open Fields", desc: "Expansive area requiring long-range strategy.", bg: "assets/images/br5.jpg" }
-    ];
-    attachSubTabOverlay(deathmatchContent, deathmatchDetails);
-    attachSubTabOverlay(battleroyaleContent, battleroyaleDetails);
 
-    /* Overlay functions */
+    renderSubBlocks(deathmatchBlocks, deathmatchData);
+    renderSubBlocks(battleroyaleBlocks, brData);
+
+    /* Overlay logic */
     const modeOverlay = document.getElementById('modeOverlay');
     const overlayTitle = document.getElementById('overlayTitle');
     const overlaySubtitle = document.getElementById('overlaySubtitle');
     const overlayDesc = document.getElementById('overlayDesc');
     const overlayCloseBtn = document.getElementById('overlayCloseBtn');
 
-    function openOverlay(detail) {
-      overlayTitle.textContent = detail.title;
-      overlaySubtitle.textContent = detail.subtitle;
-      overlayDesc.textContent = detail.desc;
-      modeOverlay.style.backgroundImage = `url('${detail.bg}')`;
+    function openOverlay(item) {
+      overlayTitle.textContent = item.title;
+      overlaySubtitle.textContent = item.subtitle;
+      overlayDesc.textContent = item.desc;
+      modeOverlay.style.backgroundImage = `url('${item.bg}')`;
+      modeOverlay.classList.remove('closing');
       modeOverlay.classList.add('active');
+      /* Prevent body scroll while overlay is active */
+      document.body.style.overflow = 'hidden';
     }
     overlayCloseBtn.addEventListener('click', () => {
-      modeOverlay.classList.remove('active');
+      modeOverlay.classList.add('closing');
+      setTimeout(() => {
+        modeOverlay.classList.remove('active');
+        modeOverlay.classList.remove('closing');
+        modeOverlay.style.backgroundImage = "";
+        /* Restore scrolling */
+        document.body.style.overflow = '';
+      }, 500);
     });
+
+    /* Dynamic extra-space logic */
+    const extraSpace = document.querySelector('.extra-space');
+    function adjustExtraSpace(){
+      // If a map-content is active, we set minimal space to ensure bottom bar won't overlap
+      const anyActiveContent = document.querySelector('.map-content.active');
+      const bottomBarHeight = bottomBarEl.offsetHeight || 70;
+      if(anyActiveContent){
+        // We'll just ensure extra-space is at least bottomBarHeight
+        extraSpace.style.height = bottomBarHeight + "px";
+      } else {
+        // Otherwise we set it to 0 or enough so that user can scroll past hero
+        // We'll see how far mainContent extends
+        const rect = mainContent.getBoundingClientRect();
+        const docBottom = window.innerHeight;
+        const gap = docBottom - rect.bottom;
+        if(gap > 0){
+          extraSpace.style.height = (bottomBarHeight + gap) + "px";
+        } else {
+          extraSpace.style.height = bottomBarHeight + "px";
+        }
+      }
+    }
+    window.addEventListener('resize', adjustExtraSpace);
+    document.addEventListener('DOMContentLoaded', adjustExtraSpace);
+    /* also call it after the sub-block animations */
+    adjustExtraSpace();
+
   </script>
   <style>
+    /* Existing sidebar reveal delays */
     .sidebar.active ul li:nth-child(1){animation-delay:0.1s;}
     .sidebar.active ul li:nth-child(2){animation-delay:0.15s;}
     .sidebar.active ul li:nth-child(3){animation-delay:0.2s;}
