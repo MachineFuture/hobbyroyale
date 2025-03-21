@@ -1310,6 +1310,11 @@
       }
       async function initPopularData(){
         let { hobbies, maps, modes } = await loadPopularData();
+        /* ADDED LINES: sort descending by 'count' for all 3 arrays */
+        hobbies.sort((a, b) => b.count - a.count);
+        maps.sort((a, b) => b.count - a.count);
+        modes.sort((a, b) => b.count - a.count);
+        /* END ADDED LINES */
         renderPopularTable(tablePopularHobbies, hobbies, "name", "count");
         renderPopularTable(tablePopularMaps, maps, "name", "count");
         renderPopularTable(tablePopularModes, modes, "name", "count");
