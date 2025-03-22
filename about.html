@@ -77,7 +77,7 @@
       transform: rotate(45deg) translate(-5px, -5px);
     }
 
-    /* Sidebar from main page */
+    /* Sidebar */
     .sidebar {
       position: fixed;
       top: 0;
@@ -129,22 +129,20 @@
     .sidebar ul li a:hover {
       background-color: rgba(255,255,255,0.3);
     }
-    /* Highlight the ABOUT link here */
     .sidebar ul li a.current {
       background-color: rgba(255,255,255,0.5);
       color: #000;
       border-radius: 5px;
     }
-    /* (NEW) in light mode, highlight the current link differently */
     body.light-mode .sidebar ul li a.current {
       background-color: rgba(0,0,0,0.3);
       color: #fff;
     }
-
-    /* Theme & system toggles at bottom of sidebar */
+    /* Theme & system toggles */
     .theme-toggle {
       position: absolute;
-      bottom: 4.5rem; left: 1rem;
+      bottom: 4.5rem;
+      left: 1rem;
       cursor: pointer;
       border: 1px solid #fff;
       padding: 0.3rem 0.5rem;
@@ -153,7 +151,8 @@
     }
     .system-toggle {
       position: absolute;
-      bottom: 1rem; left: 1rem;
+      bottom: 1rem;
+      left: 1rem;
       font-size: 0.9rem;
       border: 1px dashed #fff;
       padding: 0.3rem;
@@ -167,7 +166,7 @@
       background: rgba(255,255,255,0.2);
     }
 
-    /* Slideshow in the background, sticks as user scrolls */
+    /* Slideshow background */
     .slideshow {
       position: fixed;
       top: 0; left: 0;
@@ -187,10 +186,11 @@
       opacity: 1;
     }
 
-    /* Headbar at top (like main page) but says "About" */
+    /* Headbar */
     .content-headbar {
       position: fixed;
-      top: -60px; left: 0;
+      top: -60px;
+      left: 0;
       width: 100%;
       height: 60px;
       background-color: var(--sidebar-dark);
@@ -205,11 +205,9 @@
       background-color: var(--sidebar-light);
       color: #000;
     }
-    .content-headbar.show {
-      top: 0;
-    }
+    .content-headbar.show { top: 0; }
 
-    /* Hero section for About page: full viewport, only big title visible initially */
+    /* Hero section */
     .about-hero {
       position: relative;
       width: 100%;
@@ -228,7 +226,7 @@
       text-transform: uppercase;
     }
 
-    /* The content section that slides in with non-linear animation */
+    /* About content section */
     .about-content {
       position: relative;
       min-height: 100vh;
@@ -241,7 +239,68 @@
       backdrop-filter: blur(3px) brightness(60%);
     }
 
-    /* Author container (like your existing code) with slide/fade animations */
+    /* OUR STUDIO SECTION (new) – modified to use scroll‐dependent animation like author-section */
+    .studio-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2rem;
+      padding: 2rem;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.2);
+      /* Removed preset animation; use scroll trigger instead */
+      opacity: 0;
+      transform: translateY(50px);
+      transition: all 1s cubic-bezier(0.68,-0.55,0.27,1.55);
+    }
+    .studio-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .studio-info {
+      flex: 1;
+      text-align: left;
+      padding-right: 1rem;
+    }
+    .studio-info .role {
+      font-size: 1rem;
+      opacity: 0.8;
+      margin-bottom: 0.5rem;
+    }
+    .studio-info .name {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+    }
+    .studio-info .description {
+      font-size: 1.1rem;
+      line-height: 1.4;
+      margin-bottom: 1rem;
+    }
+    .studio-logo {
+      flex-shrink: 0;
+      width: 200px;
+      height: 200px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .studio-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    @media (max-width: 768px) {
+      .studio-section {
+        flex-direction: column;
+        text-align: center;
+      }
+      .studio-info {
+        padding-right: 0;
+        margin-bottom: 1rem;
+      }
+    }
+
+    /* Existing author-section (Game Director) */
     .author-section {
       position: relative;
       display: flex;
@@ -252,25 +311,25 @@
       background: rgba(255,255,255,0.2);
       padding: 2rem;
       border-radius: 15px;
-
-      /* hidden by default, then animated in on scroll */
       opacity: 0;
       transform: translateY(50px);
-      transition: all 1s cubic-bezier(.68,-0.55,.27,1.55);
+      transition: all 1s cubic-bezier(0.68,-0.55,0.27,1.55);
     }
     .author-section.visible {
       opacity: 1;
       transform: translateY(0);
     }
     .author-pfp {
-      width: 200px; height: 200px;
+      width: 200px;
+      height: 200px;
       border-radius: 50%;
       overflow: hidden;
       margin-right: 2rem;
       flex-shrink: 0;
     }
     .author-pfp img {
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
     }
     .author-info {
@@ -308,11 +367,13 @@
       }
     }
 
-    /* Bottom bar (like main page) but no "Coming 20XX" text */
+    /* Bottom bar */
     .bottom-bar {
       position: fixed;
-      bottom: -70px; left: 0;
-      width: 100%; height: 70px;
+      bottom: -70px;
+      left: 0;
+      width: 100%;
+      height: 70px;
       background-color: var(--sidebar-dark);
       color: #fff;
       display: flex;
@@ -328,8 +389,10 @@
     .bottom-bar.show {
       bottom: 0;
     }
-    @keyframes appear {
-      to { opacity: 1; transform: translateX(0); }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(50px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -357,7 +420,7 @@
     <div class="system-toggle" id="systemToggle" onclick="toggleSystemTheme()">System Off</div>
   </nav>
 
-  <!-- Headbar (like main page) but says "About" -->
+  <!-- Headbar -->
   <div class="content-headbar" id="headbar"><span>About</span></div>
 
   <!-- Slideshow background -->
@@ -372,13 +435,30 @@
     <img src="assets/images/aboutslide8.jpg" alt="Slide8">
   </div>
 
-  <!-- 1) Hero section that shows only the ABOUT title initially -->
+  <!-- Hero section -->
   <section class="about-hero" id="heroSection">
     <h1>ABOUT</h1>
   </section>
 
-  <!-- 2) About content section, slides in on scroll, filter effect on further scroll -->
+  <!-- About content section -->
   <section class="about-content" id="aboutContent">
+    <!-- NEW: Our Studio section (scrolling dependent animation, same as author-section) -->
+    <div class="studio-section" id="studioSection">
+      <div class="studio-info">
+        <div class="role">Our Studio</div>
+        <div class="name">Purple Lunchbox Productions</div>
+        <div class="description">
+          We are a creative collective passionate about turning everyday hobbies into epic adventures. Our innovative approach brings your interests to life with engaging gameplay and imaginative design.
+        </div>
+        <div class="placeholder-line">[Placeholder tagline 1]</div>
+        <div class="placeholder-line">[Placeholder tagline 2]</div>
+      </div>
+      <div class="studio-logo">
+        <img src="assets/images/studio-logo.jpg" alt="Studio Logo">
+      </div>
+    </div>
+
+    <!-- Existing Game Director section -->
     <div class="author-section" id="authorSection">
       <div class="author-pfp">
         <img src="assets/images/authorpfp.jpg" alt="Author PFP">
@@ -397,13 +477,13 @@
     </div>
   </section>
 
-  <!-- Bottom bar (like main page, minus "Coming 20XX") -->
+  <!-- Bottom bar -->
   <div class="bottom-bar" id="bottom-bar">
     <div>© 2025 Purple Lunchbox Productions</div>
   </div>
 
   <script>
-    /* Sidebar & theme toggles from main page code */
+    /* Sidebar & theme toggles */
     let systemModeActive = false;
     const toggleBtn = document.getElementById('toggleButton');
     const dimscreen = document.getElementById('dimscreen');
@@ -439,7 +519,6 @@
         systemToggleBtn.textContent = 'System On';
         themeToggle.style.opacity = '0.5';
         themeToggle.style.pointerEvents = 'none';
-        handleSystemTheme();
       } else {
         systemToggleBtn.classList.remove('active');
         systemToggleBtn.textContent = 'System Off';
@@ -451,7 +530,7 @@
       if(!systemModeActive)return;
       let mq = window.matchMedia('(prefers-color-scheme: dark)');
       setAutoTheme(mq.matches);
-      mq.onchange = e=>{ if(systemModeActive){ setAutoTheme(e.matches); } };
+      mq.onchange = e => { if(systemModeActive){ setAutoTheme(e.matches); } };
     }
     function setAutoTheme(isDark){
       if(isDark){
@@ -465,7 +544,7 @@
       }
     }
 
-    /* Slideshow logic: 8 images, 7s each, faint crossfade */
+    /* Slideshow logic */
     let slides = document.querySelectorAll('#slideshow img');
     let currentSlide = 0;
     function showSlide(index){
@@ -481,7 +560,7 @@
       showSlide(currentSlide);
     },7000);
 
-    /* Headbar & bottom bar logic: same as main page */
+    /* Headbar & bottom bar logic */
     const headbarEl = document.getElementById('headbar');
     const bottomBarEl = document.getElementById('bottom-bar');
     window.onscroll = function(){
@@ -489,6 +568,7 @@
       handleBottomBar();
       handleAboutScrollFilter();
       handleAuthorSectionReveal();
+      handleStudioSectionReveal();  // NEW: call the studio section reveal function
     };
     function handleHeroScroll(){
       const heroSec = document.getElementById('heroSection').getBoundingClientRect();
@@ -508,8 +588,6 @@
         bottomBarEl.classList.remove('show');
       }
     }
-
-    /* Filter effect on aboutContent as user scrolls further */
     function handleAboutScrollFilter(){
       const aboutBg = document.getElementById('aboutContent');
       const rect = aboutBg.getBoundingClientRect();
@@ -519,8 +597,6 @@
         aboutBg.classList.remove('filtered');
       }
     }
-
-    /* Reveal author-section with non-linear animation once in view */
     function handleAuthorSectionReveal(){
       const authorSec = document.getElementById('authorSection');
       const rect = authorSec.getBoundingClientRect();
@@ -530,8 +606,16 @@
         authorSec.classList.remove('visible');
       }
     }
-
-    /* Make sure the video/slide background is set up on load */
+    // NEW: Handle Studio Section Reveal (same as author-section)
+    function handleStudioSectionReveal(){
+      const studioSec = document.getElementById('studioSection');
+      const rect = studioSec.getBoundingClientRect();
+      if(rect.top < window.innerHeight && rect.bottom > 0){
+        studioSec.classList.add('visible');
+      } else {
+        studioSec.classList.remove('visible');
+      }
+    }
     function main(){
       showSlide(currentSlide);
     }
