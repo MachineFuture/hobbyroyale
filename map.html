@@ -484,7 +484,7 @@
     <div class="mode-selection-title">Pick a mode that fits your playstyle:</div>
     <!-- Two big tabs side by side -->
     <div class="map-tabs">
-      <div class="map-tab" id="deathmatchTab" style="background-image: url('assets/images/deathmatch-maps.jpg');">
+      <div class="map-tab" id="deathmatchTab" style="background-image: url('assets/images/deathmatch-maps.png');">
         <div class="tab-title">Deathmatch Maps</div>
         <div class="tab-subtitle">Tight-knit maps for intense battles</div>
       </div>
@@ -671,19 +671,22 @@
 
     // Deathmatch data
     const deathmatchData = [
-      { title: "Japan 2017", bg: "assets/images/deathmatch1.jpg", subtitle: "Classic Arena", desc: "Traditional architecture with dynamic weather for intense battles." },
-      { title: "Nintendo Museum", bg: "assets/images/deathmatch2.jpg", subtitle: "Exhibit Ambush", desc: "A labyrinth of exhibits challenging your tactical positioning." },
-      { title: "Windows Me Desktop", bg: "assets/images/deathmatch3.jpg", subtitle: "Digital Nostalgia", desc: "Quirky pixelated map where every icon counts." },
-      { title: "Cedar Point", bg: "assets/images/deathmatch4.jpg", subtitle: "Outdoor Battleground", desc: "Thrilling rides and scenic views test your strategy." },
-      { title: "Survival Multiplayer Server", bg: "assets/images/deathmatch5.jpg", subtitle: "Rugged Terrain", desc: "An unforgiving landscape rewarding clever survival tactics." }
+      { title: "Japan 2017", bg: "assets/images/deathmatch1.jpg", subtitle: "Classic Arena", desc: "Traditional architecture (and flowers) with dynamic weather for intense battles." },
+      { title: "Nintendo Museum", bg: "assets/images/deathmatch2.jpg", subtitle: "Exhibit Ambush", desc: "A labyrinth of console exhibits, challenging your tactical positioning." },
+      { title: "Windows Me Desktop", bg: "assets/images/deathmatch3.png", subtitle: "Digital Nostalgia", desc: "Quirky pixelated map where every icon counts, and has tons of instability." },
+      { title: "Cedar Point", bg: "assets/images/deathmatch4.jpg", subtitle: "Outdoor Battleground", desc: "Thrilling rides and scenic views that either helps you test your strategy or just yeets you." },
+      { title: "Survival Multiplayer Server", bg: "assets/images/deathmatch5.png", subtitle: "Rugged Terrain", desc: "An unforgiving and blocky landscape rewarding clever survival tactics." }
     ];
     // Battle Royale data
     const brData = [
-      { title: "Katsuta Station", bg: "assets/images/br1.jpg", subtitle: "Bustling Hub", desc: "A strategic transport hub with critical chokepoints." },
-      { title: "Life Inn Katsuta", bg: "assets/images/br2.jpg", subtitle: "Urban Maze", desc: "Iconic hotel with a maze-like layout for urban combat." },
+      { title: "Katsuta Station", bg: "assets/images/br1.jpg", subtitle: "Winning Hub", desc: "A strategic transport hub with critical chokepoints, also don't get lost!" },
+      { title: "Life Inn Katsuta", bg: "assets/images/br2.png", subtitle: "Cozy Place", desc: "Iconic hotel with a maze-like layout for urban combat." },
       { title: "Hitachinaka Cultural Center", bg: "assets/images/br3.jpg", subtitle: "Artistic Battleground", desc: "A venue steeped in tradition challenging your tactics." },
-      { title: "Katsuta Central", bg: "assets/images/br4.jpg", subtitle: "Urban Core", desc: "Dense structures demand precise close-quarters combat." },
-      { title: "Katsuta Outskirts", bg: "assets/images/br5.jpg", subtitle: "Open Fields", desc: "Expansive area requiring long-range strategy." }
+      { title: "Console Corner", bg: "assets/images/br4.jpg", subtitle: "Playful Space", desc: "Area full of consoles, perfect for paying homage or just a chaotic fight." },
+      { title: "Sacred Center", bg: "assets/images/br5.png", subtitle: "Godly Manifestation", desc: "Where fights are a part of the sacred journey." },
+      { title: "Scratchy Sands", bg: "assets/images/br6.jpg", subtitle: "Wild West", desc: "Don't lose your hope! You can still get out by shortcuts." },
+      { title: "Factory Forms", bg: "assets/images/br7.jpg", subtitle: "Machine Core", desc: "Mechs rule here, maybe ride one too." },
+      { title: "Nemophila Fields ", bg: "assets/images/br8.jpg", subtitle: "Blue Fields", desc: "Stop fighting, sit down, and relax with the blue heaven." }
     ];
 
     function renderSubBlocks(container, data) {
